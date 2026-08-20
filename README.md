@@ -102,6 +102,7 @@ python -m hermes_eval canary
 python -m hermes_eval trace rescore --trace results\<run>\trace.json
 python -m hermes_eval trace atof evals\fixtures\_trace_samples\atof-sample.jsonl
 python -m hermes_eval ingest-toolperf
+python -m hermes_eval adjudicate-atof
 python -m hermes_eval analyze
 python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
 python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 10

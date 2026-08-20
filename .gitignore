@@ -1,6 +1,7 @@
 .worktrees/
 .cache/
-results/
+results/*
+!results/atof-waste-adjudication.json
 __pycache__/
 *.py[cod]
 *.egg-info/

@@ -567,6 +567,64 @@ def cmd_ingest_toolperf(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_adjudicate_atof(args: argparse.Namespace) -> int:
+    from hermes_eval.adjudicate_atof import (
+        build_packet,
+        default_ingest_path,
+        default_json_path,
+        default_md_path,
+        merge_human_fields,
+        render_packet_md,
+    )
+    from hermes_eval.toolperf_ingest import default_rerun_dir
+
+    ingest_path = Path(args.ingest) if args.ingest else default_ingest_path()
+    if not ingest_path.is_file():
+        raise SystemExit(f"missing ingest JSON {ingest_path} (run ingest-toolperf first)")
+    ingest = json.loads(ingest_path.read_text(encoding="utf-8"))
+    rerun = Path(args.rerun) if args.rerun else default_rerun_dir()
+    packet = build_packet(ingest, rerun)
+    dest = Path(args.out) if args.out else default_json_path()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if dest.is_file() and not args.reset_labels:
+        existing = json.loads(dest.read_text(encoding="utf-8"))
+        packet = merge_human_fields(packet, existing)
+    dest.write_text(json.dumps(packet, indent=2) + "\n", encoding="utf-8")
+    report_path = Path(args.report) if args.report else default_md_path()
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(render_packet_md(packet), encoding="utf-8")
+    summary = {
+        "status": packet["status"],
+        "json": str(dest),
+        "report": str(report_path),
+        "detector_hits": packet["detector_hits"],
+        "unique_episodes": packet["unique_episodes"],
+        "episode_ids": [ep["episode_id"] for ep in packet["episodes"]],
+        "by_detector": packet["by_detector"],
+        "overlap_distribution": packet["overlap_distribution"],
+        "HUMAN_VERDICT_prefilled": any(ep.get("HUMAN_VERDICT") for ep in packet["episodes"]),
+    }
+    print(json.dumps(summary, indent=2))
+    sys.stderr.write(f"\n{report_path}\n{packet['status']}\n")
+    return 0
+
+
+def cmd_score_adjudication(args: argparse.Namespace) -> int:
+    from hermes_eval.adjudicate_atof import default_json_path, labels_complete, score_packet
+
+    path = Path(args.packet) if args.packet else default_json_path()
+    packet = json.loads(path.read_text(encoding="utf-8"))
+    scored = score_packet(packet)
+    dest = Path(args.out) if args.out else (REPO_ROOT / "results" / "atof-waste-validity.json")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(scored, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(scored, indent=2))
+    if not labels_complete(packet):
+        sys.stderr.write("WAITING_FOR_HUMAN_LABELS\n")
+        return 2
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="hermes-eval",
@@ -670,6 +728,29 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_p.add_argument("--rerun", help="Path to results/2026-08-06_rerun")
     ingest_p.add_argument("--out", help="JSON summary path")
     ingest_p.set_defaults(func=cmd_ingest_toolperf)
+
+    adj_p = sub.add_parser(
+        "adjudicate-atof",
+        help="Build the 13-episode ATOF waste packet (does not self-label)",
+    )
+    adj_p.add_argument("--ingest", help="Path to results/toolperf-ingest.json")
+    adj_p.add_argument("--rerun", help="Path to results/2026-08-06_rerun")
+    adj_p.add_argument("--out", help="Annotation JSON path")
+    adj_p.add_argument("--report", help="Markdown packet path")
+    adj_p.add_argument(
+        "--reset-labels",
+        action="store_true",
+        help="Overwrite HUMAN_VERDICT fields (default: merge existing labels)",
+    )
+    adj_p.set_defaults(func=cmd_adjudicate_atof)
+
+    score_adj_p = sub.add_parser(
+        "score-adjudication",
+        help="Score HUMAN_VERDICT labels; refuses if unlabeled",
+    )
+    score_adj_p.add_argument("--packet", help="Path to results/atof-waste-adjudication.json")
+    score_adj_p.add_argument("--out", help="Validity JSON path")
+    score_adj_p.set_defaults(func=cmd_score_adjudication)
 
     analyze_p = sub.add_parser(
         "analyze",
