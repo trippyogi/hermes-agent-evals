@@ -10,9 +10,12 @@ It answers:
 Historical validation is the gate: a fixture is useful only if it can
 separate a known-bad Hermes SHA from a known-good/fixed SHA.
 
-v0.2 proves **portability** (clean clone + GitHub fetch), **measurement
-validity** (ancestry-aware canary, accumulating prefix probe, episode-level
-waste labels), and **longitudinal usefulness** before adding more fixtures.
+v0.3 makes **TraceV1** the scoreable artifact: run once, store a neutral
+trace, re-score later without the original runner extras. The
+deterministic canary stays on maintenance; new research goes through
+traces, repeated live behavior, and stateful scoring.
+
+v0.2 proved **portability** (clean clone + GitHub fetch).
 
 ## Why this exists
 
@@ -56,13 +59,15 @@ historical-validation gate.
 
 ```
 evals/fixtures/      fixture YAML (id, classification, known_bad/good SHAs)
-evals/provenance/    immutable SHA manifest + frozen expected splits
-evals/runners/       isolated SUT drivers
-evals/scorers/       component metrics + regression flags
-evals/schemas/       fixture + result contracts
+evals/provenance/    immutable SHA manifest, frozen expected splits, canary index
+evals/runners/       isolated SUT drivers (emit observations)
+evals/scorers/       component metrics + ancestry-aware canary
+evals/schemas/       fixture, result, and TraceV1 contracts
 evals/suites/        core-failures
-hermes_eval/         CLI
+hermes_eval/         CLI, TraceV1 adapters/scorers
+hermes_eval/trace/   TraceV1 model, adapters, re-score
 reports/evals/       architecture, corpus, taxonomy, results
+.github/workflows/   historical 3/3 on PR; scheduled current canary
 ```
 
 ## How to run (portable)
@@ -84,6 +89,9 @@ python -m hermes_eval fetch-sut
 python -m hermes_eval freeze
 python -m hermes_eval compare --historical --suite core-failures
 python -m hermes_eval canary
+python -m hermes_eval trace rescore --trace results\<run>\trace.json
+python -m hermes_eval trace atof evals\fixtures\_trace_samples\atof-sample.jsonl
+python -m unittest discover -s tests -v
 python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
 python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 5
 python -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
@@ -104,6 +112,10 @@ python -m hermes_eval compare --historical --suite core-failures
 materializes detached checkouts under `.worktrees/<sha12>`. Result JSON
 records that clone-local `hermes_root`. Operator filesystem paths are not
 required. Replay provenance stays in `evals/provenance/manifest.json`.
+
+`--historical` scores **from TraceV1**, not runner extras. Each run writes
+`trace.json` beside `result.json`. `python -m hermes_eval trace rescore`
+re-scores a stored trace. `--runner-score` is an escape hatch.
 
 `--historical` uses each fixture YAML’s own known-bad / known-good pair
 (required for the gate: the three fixes live on different SHAs).

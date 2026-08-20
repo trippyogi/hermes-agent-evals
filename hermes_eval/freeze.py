@@ -18,6 +18,7 @@ FIXTURE_FILES = [
     "evals/fixtures/compression-prefix-probe.yaml",
     "evals/provenance/expected-historical.json",
     "evals/provenance/manifest.json",
+    "evals/schemas/trace-v1.schema.json",
     "evals/suites/core-failures.yaml",
 ]
 

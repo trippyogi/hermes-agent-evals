@@ -1,0 +1,8 @@
+{"kind":"scope","category":"llm","scope_category":"start","name":"eval-mock","data":{}}
+{"kind":"scope","category":"llm","scope_category":"end","name":"eval-mock","metadata":{"status":"ok"}}
+{"kind":"scope","category":"tool","scope_category":"start","name":"write_file","data":{}}
+{"kind":"scope","category":"tool","scope_category":"end","name":"write_file","metadata":{"status":"ok"},"data":"{\"ok\": true}"}
+{"kind":"scope","category":"tool","scope_category":"start","name":"write_file","data":{}}
+{"kind":"scope","category":"tool","scope_category":"end","name":"write_file","metadata":{"status":"error"},"data":"{\"error\": \"retry\"}"}
+{"kind":"scope","category":"tool","scope_category":"start","name":"write_file","data":{}}
+{"kind":"scope","category":"tool","scope_category":"end","name":"write_file","metadata":{"status":"error"},"data":"{\"error\": \"retry\"}"}

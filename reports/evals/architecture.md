@@ -38,11 +38,15 @@ the user's real profile.
 
 | Source | What | Used here |
 |---|---|---|
-| Runner-owned `events[]` | Structured llm/tool/patch records | Yes |
-| `hermes -z --usage-file` | tokens, api_calls, model | Seam only |
-| Session `state.db` | SQLite under HERMES_HOME | Not opened this pass |
-| NeMo Relay ATOF | Ground-truth llm/tool turns | Documented; not enabled |
-| Desktop pin-sync | PATCH log | Simulated at store boundary |
+| TraceV1 `events[]` | Neutral model/tool/state/delegate/compression/diagnostic | **v0.3 core artifact** |
+| Runner-owned extras | Debug-only; scorers must not require them | Adapter input |
+| `hermes -z --usage-file` | tokens, api_calls, model | Live seam |
+| Session `state.db` | SQLite under HERMES_HOME | Not opened |
+| NeMo Relay ATOF | Ground-truth llm/tool turns | ATOF → TraceV1 adapter |
+| Desktop pin-sync | PATCH log | Simulated at store boundary; PATCH events in TraceV1 |
+
+Re-score: `python -m hermes_eval trace rescore --trace path/to/trace.json`.
+The v0.3 gate is historical 3/3 from TraceV1 after throwing away extras.
 
 ## How do we measure token usage?
 

@@ -11,9 +11,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from evals.scorers.canary import interpret_canary
+from hermes_eval.canary_index import append_index
 from hermes_eval.compare import build_compare, write_compare
 from hermes_eval.fixtureload import FIXTURE_SCHEMA_VERSION, load_fixture, load_manifest
 from hermes_eval.freeze import freeze_payload, write_freeze
+from hermes_eval.trace.model import validate_trace
+from hermes_eval.trace.rescore import emit_trace, result_from_trace, score_trace
 from hermes_eval.gitutil import (
     REPO_ROOT,
     discover_python,
@@ -145,8 +148,44 @@ def run_fixture(
     )
     if proc.returncode not in (0, 1) and proc.stderr:
         payload.setdefault("notes", []).append(f"runner stderr: {proc.stderr[-400:]}")
+    payload = _attach_trace(result_path, payload)
     result_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return result_path
+
+
+def _attach_trace(result_path: Path, payload: dict) -> dict:
+    """Write TraceV1 beside result.json. result.extras stay on disk for debug."""
+    trace = emit_trace(payload)
+    errors = validate_trace(trace)
+    trace_path = result_path.parent / "trace.json"
+    trace_path.write_text(json.dumps(trace, indent=2) + "\n", encoding="utf-8")
+    payload["trace_path"] = str(trace_path)
+    payload["trace_errors"] = errors
+    scored = score_trace(trace)
+    payload["runner_success"] = payload.get("success")
+    payload["trace_success"] = bool(scored.get("success"))
+    payload["trace_score"] = scored
+    payload["trace_agreement"] = payload["runner_success"] == payload["trace_success"]
+    if errors:
+        payload.setdefault("notes", []).append("TraceV1 validation: " + "; ".join(errors[:6]))
+    return payload
+
+
+def _compare_payload(result_path: Path, *, from_trace: bool) -> dict:
+    result = _load_result(result_path)
+    if not from_trace:
+        return result
+    trace_path = result_path.parent / "trace.json"
+    if not trace_path.is_file():
+        result = _attach_trace(result_path, result)
+        result_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    trace = json.loads(trace_path.read_text(encoding="utf-8"))
+    scored = result_from_trace(trace, hermes_ref=result.get("hermes_ref"))
+    scored["runner_success"] = result.get("runner_success", result.get("success"))
+    scored["trace_agreement"] = result.get("trace_agreement")
+    scored["harness_sha"] = result.get("harness_sha")
+    scored["fixture_version"] = result.get("fixture_version")
+    return scored
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -167,6 +206,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
+    from_trace = not getattr(args, "runner_score", False)
     fixtures = SUITES.get(args.suite)
     if not fixtures:
         raise SystemExit(f"unknown suite {args.suite!r}; known: {sorted(SUITES)}")
@@ -203,7 +243,12 @@ def cmd_compare(args: argparse.Namespace) -> int:
             out_dir=out_dir / "candidate" / fixture,
             python=args.python,
         )
-        pairs.append((_load_result(base_path), _load_result(cand_path)))
+        pairs.append(
+            (
+                _compare_payload(base_path, from_trace=from_trace),
+                _compare_payload(cand_path, from_trace=from_trace),
+            )
+        )
     report = build_compare(
         suite=args.suite,
         baseline="historical-per-fixture" if args.historical else expand_ref(args.baseline),
@@ -213,11 +258,22 @@ def cmd_compare(args: argparse.Namespace) -> int:
         fixture_schema_version=FIXTURE_SCHEMA_VERSION,
         historical=bool(args.historical),
     )
+    report["scored_from"] = "trace-v1" if from_trace else "runner"
     report["manifest"] = str(REPO_ROOT / "evals" / "provenance" / "manifest.json")
     if args.historical:
         report["per_fixture_refs"] = [
             {"fixture": f, "known_bad": b, "known_good": c} for f, b, c in labels
         ]
+    disagreements = []
+    for row, (b, c) in zip(report.get("fixtures") or [], pairs):
+        if from_trace and (b.get("trace_agreement") is False or c.get("trace_agreement") is False):
+            disagreements.append(row.get("fixture"))
+    report["trace_runner_disagreements"] = disagreements
+    if disagreements:
+        report.setdefault("historical_validation", {}).setdefault("failures", []).append(
+            "trace vs runner success disagreed: " + ", ".join(disagreements)
+        )
+        report["historical_validation"]["passed"] = False
     json_path, md_path = write_compare(report, out_dir)
     print(json.dumps(report, indent=2))
     sys.stderr.write(f"\n{md_path.read_text(encoding='utf-8')}\nJSON: {json_path}\n")
@@ -345,11 +401,12 @@ def cmd_canary(args: argparse.Namespace) -> int:
             python=args.python,
         )
         result = _load_result(path)
+        success = result.get("trace_success", result.get("success"))
         rows.append(
             interpret_canary(
                 fixture=fixture,
                 current_sha=current,
-                success=bool(result.get("success")),
+                success=bool(success),
             )
         )
     git_state = harness_git_state()
@@ -359,6 +416,7 @@ def cmd_canary(args: argparse.Namespace) -> int:
         "harness_dirty": git_state["harness_dirty"],
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "fixtures": rows,
+        "scored_from": "trace-v1",
         "false_regression_rule": (
             "REGRESSION only if known_good is an ancestor AND the fixture failed"
         ),
@@ -368,11 +426,44 @@ def cmd_canary(args: argparse.Namespace) -> int:
     md_path = out_dir / "canary.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(_render_canary_md(report), encoding="utf-8")
+    if not getattr(args, "no_index", False):
+        idx = append_index(report)
+        report["index"] = str(idx)
+        json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
     sys.stderr.write(f"\n{md_path.read_text(encoding='utf-8')}\nJSON: {json_path}\n")
     if any(r.get("status") == "REGRESSION" for r in rows):
         return 2
     return 0
+
+
+def cmd_trace_emit(args: argparse.Namespace) -> int:
+    src = Path(args.result)
+    result = _load_result(src)
+    dest = Path(args.out) if args.out else src.parent / "trace.json"
+    trace = emit_trace(result)
+    dest.write_text(json.dumps(trace, indent=2) + "\n", encoding="utf-8")
+    scored = score_trace(trace)
+    print(json.dumps({"trace": str(dest), "score": scored, "errors": validate_trace(trace)}, indent=2))
+    return 0 if not validate_trace(trace) else 1
+
+
+def cmd_trace_rescore(args: argparse.Namespace) -> int:
+    trace = json.loads(Path(args.trace).read_text(encoding="utf-8"))
+    scored = score_trace(trace)
+    print(json.dumps(scored, indent=2))
+    return 0 if scored.get("success") else 1
+
+
+def cmd_trace_atof(args: argparse.Namespace) -> int:
+    from hermes_eval.trace.adapters.atof import emit_atof
+
+    trace = emit_atof(args.path)
+    dest = Path(args.out) if args.out else Path(args.path).with_suffix(".trace.json")
+    dest.write_text(json.dumps(trace, indent=2) + "\n", encoding="utf-8")
+    errors = validate_trace(trace)
+    print(json.dumps({"trace": str(dest), "metrics": trace.get("metrics"), "errors": errors}, indent=2))
+    return 0 if not errors else 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -402,6 +493,11 @@ def build_parser() -> argparse.ArgumentParser:
     cmp_p.add_argument("--hermes-source")
     cmp_p.add_argument("--out")
     cmp_p.add_argument("--python")
+    cmp_p.add_argument(
+        "--runner-score",
+        action="store_true",
+        help="Score from runner extras instead of TraceV1 (escape hatch)",
+    )
     cmp_p.set_defaults(func=cmd_compare)
 
     scan_p = sub.add_parser("scan-waste", help="Parse transcripts for waste candidates")
@@ -449,7 +545,22 @@ def build_parser() -> argparse.ArgumentParser:
     canary_p.add_argument("--hermes-source")
     canary_p.add_argument("--out")
     canary_p.add_argument("--python")
+    canary_p.add_argument("--no-index", action="store_true", help="Do not append evals/provenance/canary-index.jsonl")
     canary_p.set_defaults(func=cmd_canary)
+
+    trace_p = sub.add_parser("trace", help="Emit or re-score TraceV1 logs")
+    trace_sub = trace_p.add_subparsers(dest="trace_cmd", required=True)
+    emit_p = trace_sub.add_parser("emit", help="Convert result.json → trace.json")
+    emit_p.add_argument("--result", required=True)
+    emit_p.add_argument("--out")
+    emit_p.set_defaults(func=cmd_trace_emit)
+    rescore_p = trace_sub.add_parser("rescore", help="Score a trace.json (ignores runner extras)")
+    rescore_p.add_argument("--trace", required=True)
+    rescore_p.set_defaults(func=cmd_trace_rescore)
+    atof_p = trace_sub.add_parser("atof", help="Convert ATOF json/jsonl → TraceV1")
+    atof_p.add_argument("path")
+    atof_p.add_argument("--out")
+    atof_p.set_defaults(func=cmd_trace_atof)
     return p
 
 

@@ -217,13 +217,203 @@ def _drive_longitudinal(agent, records: list[dict]) -> tuple[list[str], list[dic
     return notes, turns
 
 
+def _policy_unmeasured() -> list[dict]:
+    return [
+        {
+            "event": "provider_fallback",
+            "prefix_expected": "investigate",
+            "measured": False,
+            "observed": "unmeasured",
+            "note": "v0.3 does not add a synthetic fallback prefix scenario",
+        },
+        {
+            "event": "delegation",
+            "prefix_expected": "separate_child_prefix",
+            "measured": False,
+            "observed": "unmeasured",
+            "note": "child requests are a separate prefix, not a parent suffix",
+        },
+        {
+            "event": "session_resume",
+            "prefix_expected": "preserve_compatible",
+            "measured": False,
+            "observed": "unmeasured",
+            "note": "ideally preserve a compatible prefix; not driven this pass",
+        },
+    ]
+
+
+def _drive_policy(agent, turns: list[dict], records: list[dict]) -> tuple[list[dict], list[str]]:
+    """Which events are legitimate prefix-invalidating boundaries?"""
+    notes: list[str] = []
+    t1 = next((t for t in turns if t.get("turn") == "T1"), None)
+    t4 = next((t for t in turns if t.get("turn") == "T4"), None)
+    t5 = next((t for t in turns if t.get("turn") == "T5"), None)
+    rows: list[dict] = []
+
+    def pack(event: str, expected: str, row: dict | None, *, measured: bool, observed: str, note: str) -> dict:
+        payload = {
+            "event": event,
+            "prefix_expected": expected,
+            "measured": measured,
+            "observed": observed,
+            "note": note,
+        }
+        if row:
+            payload.update(
+                {
+                    "system_hash": row.get("system_hash"),
+                    "tools_hash": row.get("tools_hash"),
+                    "message_count": row.get("message_count"),
+                    "shared_prefix_count": row.get("shared_prefix_count"),
+                    "prefix_retention_ratio": row.get("prefix_retention_ratio"),
+                    "first_divergence": row.get("first_divergence"),
+                    "compression_event": row.get("compression_event"),
+                }
+            )
+        return payload
+
+    if t1 and t4:
+        stable = t1.get("system_hash") == t4.get("system_hash") and t1.get("tools_hash") == t4.get("tools_hash") and t4.get("prefix_retention_ratio") == 1.0
+        rows.append(
+            pack(
+                "ordinary_suffix_turn",
+                "stable",
+                t4,
+                measured=True,
+                observed="stable" if stable else "unexpected_change",
+                note="T1–T4 accumulating suffix; cache-eligible prefix ≠ provider cache hit",
+            )
+        )
+    else:
+        rows.append(pack("ordinary_suffix_turn", "stable", None, measured=False, observed="unmeasured", note="T1/T4 missing"))
+
+    t1_messages = [{"role": "system", "content": agent._cached_system_prompt or "You are Hermes eval. Tools: write_file."}]
+    t1_messages.append({"role": "user", "content": "longitudinal suffix turn 1: ping 1"})
+    t1_messages.append({"role": "assistant", "content": "ok"})
+    try:
+        t1_kwargs = agent._build_api_kwargs(list(t1_messages))
+        t1_out = _outgoing_messages(t1_kwargs, t1_messages)
+    except Exception as exc:
+        notes.append(f"policy T1 rebuild failed: {type(exc).__name__}")
+        t1_out = list(t1_messages)
+        t1_kwargs = {"messages": t1_out, "tools": getattr(agent, "tools", TOOL_DEFS)}
+
+    tool_msgs = list(t1_out) + [
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_eval_1",
+                    "type": "function",
+                    "function": {"name": "write_file", "arguments": "{\"path\": \"x\"}"},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_eval_1", "content": "wrote x"},
+        {"role": "user", "content": "continue after tool result"},
+    ]
+    try:
+        kwargs = agent._build_api_kwargs(tool_msgs)
+    except Exception as exc:
+        notes.append(f"tool_result_append build failed: {type(exc).__name__}")
+        kwargs = {"messages": tool_msgs, "tools": getattr(agent, "tools", TOOL_DEFS)}
+    tool_row = _turn_row("tool_result_append", kwargs, tool_msgs, t1_out, compression=False)
+    records.append({"kind": "policy_turn", **tool_row})
+    stable_tool = tool_row.get("prefix_retention_ratio") == 1.0
+    rows.append(
+        pack(
+            "tool_result_append",
+            "stable",
+            tool_row,
+            measured=True,
+            observed="stable" if stable_tool else "unexpected_change",
+            note="tool call/result is a suffix; previous prefix should remain",
+        )
+    )
+
+    orig_sys = getattr(agent, "_cached_system_prompt", None)
+    agent._cached_system_prompt = str(orig_sys or "") + "\n# config changed"
+    sys_msgs = [{"role": "system", "content": agent._cached_system_prompt}, {"role": "user", "content": "after system change"}]
+    try:
+        kwargs = agent._build_api_kwargs(sys_msgs)
+    except Exception as exc:
+        notes.append(f"system_change build failed: {type(exc).__name__}")
+        kwargs = {"messages": sys_msgs, "tools": getattr(agent, "tools", TOOL_DEFS)}
+    sys_row = _turn_row("system_change", kwargs, sys_msgs, t1_out, compression=False)
+    records.append({"kind": "policy_turn", **sys_row})
+    changed_sys = sys_row.get("system_hash") != (t1 or {}).get("system_hash")
+    rows.append(
+        pack(
+            "system_prompt_config_change",
+            "change",
+            sys_row,
+            measured=True,
+            observed="change" if changed_sys else "unexpected_stable",
+            note="system prompt / config change is a legitimate prefix-invalidating boundary",
+        )
+    )
+    agent._cached_system_prompt = orig_sys
+
+    orig_tools = list(getattr(agent, "tools", []) or [])
+    extra_tool = {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": "read a file",
+            "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+        },
+    }
+    agent.tools = orig_tools + [extra_tool]
+    try:
+        kwargs = agent._build_api_kwargs(list(t1_messages))
+    except Exception as exc:
+        notes.append(f"tool_schema_change build failed: {type(exc).__name__}")
+        kwargs = {"messages": t1_messages, "tools": agent.tools}
+    schema_row = _turn_row("tool_schema_change", kwargs, t1_messages, t1_out, compression=False)
+    records.append({"kind": "policy_turn", **schema_row})
+    changed_tools = schema_row.get("tools_hash") != (t1 or {}).get("tools_hash")
+    rows.append(
+        pack(
+            "tool_schema_change",
+            "change",
+            schema_row,
+            measured=True,
+            observed="change" if changed_tools else "unexpected_stable",
+            note="tool schema change is a legitimate prefix-invalidating boundary",
+        )
+    )
+    agent.tools = orig_tools
+
+    if t5:
+        changed = bool(t5.get("compression_event")) and t5.get("prefix_retention_ratio") == 0.0
+        rows.append(
+            pack(
+                "compression",
+                "change",
+                t5,
+                measured=True,
+                observed="change" if changed else "unexpected_stable",
+                note="compress() is an intentional prefix-invalidating boundary",
+            )
+        )
+    rows.extend(_policy_unmeasured())
+    return rows, notes
+
+
 def run(hermes_root: Path | None, hermes_sha: str | None, out_dir: Path) -> dict:
     started = time.perf_counter()
     notes: list[str] = []
     records: list[dict] = []
     home = write_isolated_home()
     turns: list[dict] = []
-    scenarios = {"longitudinal": None, "t1_t4_suffix_growth": None, "t5_force_compress": None}
+    scenarios = {
+        "longitudinal": None,
+        "t1_t4_suffix_growth": None,
+        "t5_force_compress": None,
+        "prefix_policy": [],
+    }
 
     if hermes_root is None:
         notes.append("no hermes root")
@@ -243,7 +433,10 @@ def run(hermes_root: Path | None, hermes_sha: str | None, out_dir: Path) -> dict
                 _wrap_agent(agent, records)
                 extra, turns = _drive_longitudinal(agent, records)
                 notes.extend(extra)
+                policy, policy_notes = _drive_policy(agent, turns, records)
+                notes.extend(policy_notes)
                 scenarios["longitudinal"] = turns
+                scenarios["prefix_policy"] = policy
                 scenarios["t1_t4_suffix_growth"] = prefix_churn(
                     [r for r in records if r.get("turn") in {"T1", "T2", "T3", "T4"}]
                 )
@@ -311,7 +504,8 @@ def _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn=N
                 "prefix_churn": churn,
                 "measurable_on_wire_wrap": success,
                 "longitudinal_turns": table,
-                "session_model": "accumulating T1-T4 suffix growth; T5 force compress()",
+                "prefix_policy": (scenarios or {}).get("prefix_policy") or [],
+                "session_model": "accumulating T1-T4 suffix growth; T5 force compress(); policy events after",
             },
         }
     )

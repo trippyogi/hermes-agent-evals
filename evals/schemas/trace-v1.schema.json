@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/hermes-agent-evals/trace-v1.schema.json",
+  "title": "Hermes eval TraceV1",
+  "description": "Neutral run log. Scorers read this, not runner extras. Secrets are fingerprinted, never stored.",
+  "type": "object",
+  "required": [
+    "trace_version",
+    "run_id",
+    "provenance",
+    "initial_state",
+    "events",
+    "final_state",
+    "artifacts",
+    "metrics"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "trace_version": { "const": "trace-v1" },
+    "run_id": { "type": "string" },
+    "provenance": {
+      "type": "object",
+      "required": ["source", "adapter"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "hermes_eval_native",
+            "atof",
+            "live_zero_toolset",
+            "prefix_probe",
+            "synthetic"
+          ]
+        },
+        "adapter": { "type": "string" },
+        "fixture": { "type": ["string", "null"] },
+        "hermes_sha": { "type": ["string", "null"] },
+        "harness_sha": { "type": ["string", "null"] },
+        "harness_dirty": { "type": ["boolean", "null"] },
+        "model": { "type": ["string", "null"] },
+        "provider": { "type": ["string", "null"] },
+        "classification": { "type": ["array", "null"], "items": { "type": "string" } },
+        "redaction": { "type": "object" }
+      }
+    },
+    "initial_state": { "type": "object" },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "final_state": { "type": "object" },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "metrics": { "type": "object" }
+  },
+  "$defs": {
+    "event": {
+      "type": "object",
+      "required": ["id", "seq", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "seq": { "type": "integer", "minimum": 0 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "model.request",
+            "model.response",
+            "tool.call",
+            "tool.result",
+            "state.snapshot",
+            "state.delta",
+            "delegate.start",
+            "delegate.end",
+            "compression.start",
+            "compression.end",
+            "diagnostic",
+            "final.output"
+          ]
+        },
+        "span_id": { "type": ["string", "null"] },
+        "parent_id": { "type": ["string", "null"] },
+        "ts": { "type": ["string", "null"] },
+        "redaction": { "type": "object" },
+        "payload": { "type": "object" }
+      }
+    }
+  }
+}

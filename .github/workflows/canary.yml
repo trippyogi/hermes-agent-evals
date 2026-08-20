@@ -1,0 +1,91 @@
+name: Canary
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "historical 3/3, current canary, or both"
+        type: choice
+        options: [historical, canary, both]
+        default: both
+
+concurrency:
+  group: canary-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trace-spine:
+    name: TraceV1 unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Re-score synthetic traces
+        run: python -m unittest discover -s tests -v
+
+  historical:
+    name: Historical 3/3 from TraceV1
+    if: github.event_name != 'schedule' && (github.event_name != 'workflow_dispatch' || inputs.mode == 'historical' || inputs.mode == 'both')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch SUT SHAs
+        run: |
+          export PYTHONPATH="$PWD"
+          python -m hermes_eval fetch-sut
+      - name: Install Hermes deps from known-bad worktree
+        run: |
+          WT=$(ls -d .worktrees/13ce0c5c675e* | head -n 1)
+          python -m pip install -U pip
+          python -m pip install -e "$WT"
+      - name: Historical 3/3 scored from TraceV1
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m hermes_eval compare --historical --suite core-failures --out results/historical-ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical-traces
+          path: results/historical-ci
+          retention-days: 30
+
+  canary:
+    name: Current SHA canary
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' && (inputs.mode == 'canary' || inputs.mode == 'both')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch SUT SHAs including origin/main
+        run: |
+          export PYTHONPATH="$PWD"
+          python -m hermes_eval fetch-sut --current
+      - name: Install Hermes deps from fetched current worktree
+        run: |
+          python -m pip install -U pip
+          WT=$(ls -d .worktrees/* | tail -n 1)
+          python -m pip install -e "$WT"
+      - name: Run current canary (no false regressions)
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m hermes_eval canary --no-index --out results/canary-ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canary-traces
+          path: results/canary-ci
+          retention-days: 90

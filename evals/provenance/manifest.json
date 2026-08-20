@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "harness": {
     "name": "hermes-agent-evals",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "fixture_schema_version": 2,
     "v0_1_tag": "v0.1.0",
     "v0_1_sha": "0641093d26fe0fa7c91a771029dd61441a06ff6a",
