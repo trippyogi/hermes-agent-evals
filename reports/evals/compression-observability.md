@@ -77,9 +77,19 @@ Harness wrap of `_build_api_kwargs` + `_interruptible_api_call` +
 | provider cache_read | `0` on mock usage; live cache hits still not_observable |
 
 We can detect unexpected **system prompt** and **tool schema** churn on
-the outgoing request path without editing Hermes. Accumulating-session
-prefix stability needs a single `run_conversation` loop that keeps
-history (next experiment), not four independent 2-message calls.
+the outgoing request path without editing Hermes.
+
+## v0.2 accumulating session (T1–T5)
+
+The probe now grows one message list across T1–T4 (same system/tools,
+suffix only) and force-`compress()` at T5. Measured on
+`13ce0c5c675e843af70d19c9e5144249cd51c8d1`:
+
+| turn | system hash | tools hash | messages | prefix vs T1 | retention | compress | first divergence |
+|---|---|---|---|---|---|---|---|
+| T1 | `54ce7e5400b938bc` | `76a7d12a8aadd424` | 2 | 2 | 1.0 | no | — |
+| T2–T4 | same | same | 4 / 6 / 8 | 2 | 1.0 | no | — |
+| T5 | `111dac948f37befd` | same | 12 | 0 | 0.0 | yes | 0 |
 
 Provider `cache_read` on a live model remains a separate measurement
 and stays `not_observable` without `HERMES_EVAL_*` credentials.
