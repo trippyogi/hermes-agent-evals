@@ -10,12 +10,12 @@ It answers:
 Historical validation is the gate: a fixture is useful only if it can
 separate a known-bad Hermes SHA from a known-good/fixed SHA.
 
-v0.3 makes **TraceV1** the scoreable artifact: run once, store a neutral
-trace, re-score later without the original runner extras. v0.3.1
-ingests the canonical August 6 `hermes-toolperf-evals` ATOF archive as
-an external validation corpus (108 runs, no new model spend). The
-deterministic canary stays on maintenance; new research goes through
-traces, repeated live behavior, and stateful scoring.
+v0.4 adds **live behavioral statistics**: Wilson rates, failure-mode
+splits, and efficiency *given success*. The live `zero-toolset-live`
+cell is BLOCKED without `HERMES_EVAL_*` and does not invent rates.
+v0.3 made **TraceV1** the scoreable artifact. v0.3.1 ingested the
+canonical August 6 `hermes-toolperf-evals` ATOF archive (108 runs) as
+an external sanity set. The deterministic canary stays on maintenance.
 
 v0.2 proved **portability** (clean clone + GitHub fetch).
 
@@ -102,8 +102,9 @@ python -m hermes_eval canary
 python -m hermes_eval trace rescore --trace results\<run>\trace.json
 python -m hermes_eval trace atof evals\fixtures\_trace_samples\atof-sample.jsonl
 python -m hermes_eval ingest-toolperf
+python -m hermes_eval analyze
 python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
-python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 5
+python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 10
 python -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
 python -m hermes_eval scan-waste evals/fixtures/_waste_samples --out results/wasted-turn-scan.json --label-sheet
 ```
@@ -207,12 +208,20 @@ Copy `.env.example` values into the **process environment** only:
 - `HERMES_EVAL_PROVIDER`
 - `HERMES_EVAL_MODEL`
 - `HERMES_EVAL_API_KEY`
-- optional `HERMES_EVAL_BASE_URL`, `HERMES_EVAL_REPS`
+- optional `HERMES_EVAL_BASE_URL`, `HERMES_EVAL_REPS` (default 10),
+  `HERMES_EVAL_TEMPERATURE` (default 0), `HERMES_EVAL_REASONING`
 
 If those are absent the live runner records `status=BLOCKED` and does
 not invent rates. Known-good makes zero tools **loud**; it does **not**
-restore tools. Report `control_task_success_rate`,
-`fault_task_success_rate` (expect ~0),
-`fault_textual_pseudo_tool_call_rate`, and `fault_diagnostic_rate`
-separately. Do not treat fault-arm task success as evidence the salvage
+restore tools. Report CONTROL and FAULT rates separately, with Wilson
+intervals. Efficiency is computed only on successful CONTROL runs.
+Fault-arm task success is expected ~0 and is not evidence the salvage
 commit fixed the task.
+
+`python -m hermes_eval analyze` writes
+`reports/evals/v0.4-live-behavioral-statistics.md` from a live
+`result.json` plus the cached toolperf ingest. Policy:
+`reports/evals/noise-reliability-policy.md`.
+
+Hermes Behavioral Observatory remains **NOT READY** until a
+production-derived behavioral metric is adjudicated (v0.4.1).

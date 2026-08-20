@@ -466,6 +466,70 @@ def cmd_trace_atof(args: argparse.Namespace) -> int:
     return 0 if not errors else 1
 
 
+def cmd_analyze(args: argparse.Namespace) -> int:
+    from hermes_eval.analyze import (
+        analyze_live_result,
+        analyze_toolperf_sanity,
+        load_toolperf_ingest,
+        render_v04_report,
+    )
+    from hermes_eval.freeze import file_digest
+
+    live_path = Path(args.live) if args.live else (REPO_ROOT / "results" / "zero-toolset-live" / "result.json")
+    live_result = None
+    if live_path.is_file():
+        live_result = _load_result(live_path)
+    else:
+        live_result = {
+            "fixture": "zero-toolset-live",
+            "status": "BLOCKED",
+            "success": False,
+            "extras": {
+                "blocked_reason": f"no live result at {live_path} (do not invent rates)",
+                "synthetic_substitution": False,
+            },
+        }
+    live = analyze_live_result(live_result)
+    ingest_path = Path(args.toolperf) if args.toolperf else (REPO_ROOT / "results" / "toolperf-ingest.json")
+    try:
+        ingest = load_toolperf_ingest(ingest_path)
+        toolperf = analyze_toolperf_sanity(ingest)
+    except FileNotFoundError as exc:
+        toolperf = {"passed": False, "error": str(exc), "recovery_worth_extra_turns": [], "err_case_search": {}}
+    stamp = datetime.now(timezone.utc).isoformat()
+    fixture_path = REPO_ROOT / "evals" / "fixtures" / "zero-toolset-live.yaml"
+    digest = file_digest(fixture_path) if fixture_path.is_file() else None
+    report = render_v04_report(
+        live=live,
+        live_result=live_result,
+        toolperf=toolperf,
+        fixture_digest=digest,
+        timestamp=stamp,
+    )
+    payload = {
+        "timestamp": stamp,
+        "live": live,
+        "toolperf_sanity": toolperf,
+        "fixture_digest": digest,
+        "live_result_path": str(live_path),
+    }
+    dest = Path(args.out) if args.out else (REPO_ROOT / "results" / "v0.4-analysis.json")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    report_path = (
+        Path(args.report)
+        if args.report
+        else (REPO_ROOT / "reports" / "evals" / "v0.4-live-behavioral-statistics.md")
+    )
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(report, encoding="utf-8")
+    print(json.dumps({"analysis": str(dest), "report": str(report_path), "live": live.get("status"), "toolperf_passed": toolperf.get("passed")}, indent=2))
+    sys.stderr.write(f"\n{report}\n")
+    if live.get("status") == "BLOCKED":
+        return 0 if toolperf.get("passed") else 2
+    return 0 if live.get("cell_valid_for_fault_comparison") and toolperf.get("passed") else 2
+
+
 def cmd_ingest_toolperf(args: argparse.Namespace) -> int:
     from hermes_eval.toolperf_ingest import default_rerun_dir, ingest, render_label_sheet, render_report
 
@@ -546,7 +610,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     live_p = sub.add_parser("live", help="Live weak-model zero-toolset (BLOCKED without HERMES_EVAL_*)")
     live_p.add_argument("--ref", required=True)
-    live_p.add_argument("--reps", type=int, default=int(os.environ.get("HERMES_EVAL_REPS", "5")))
+    live_p.add_argument("--reps", type=int, default=int(os.environ.get("HERMES_EVAL_REPS", "10")))
     live_p.add_argument("--hermes-source")
     live_p.add_argument("--out")
     live_p.add_argument("--python")
@@ -606,6 +670,19 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_p.add_argument("--rerun", help="Path to results/2026-08-06_rerun")
     ingest_p.add_argument("--out", help="JSON summary path")
     ingest_p.set_defaults(func=cmd_ingest_toolperf)
+
+    analyze_p = sub.add_parser(
+        "analyze",
+        help="v0.4 live-cell + toolperf sanity analysis (no new model jobs)",
+    )
+    analyze_p.add_argument("--live", help="Path to zero-toolset-live result.json")
+    analyze_p.add_argument("--toolperf", help="Path to results/toolperf-ingest.json")
+    analyze_p.add_argument("--out", help="Analysis JSON path")
+    analyze_p.add_argument(
+        "--report",
+        help="Markdown report path (default reports/evals/v0.4-live-behavioral-statistics.md)",
+    )
+    analyze_p.set_defaults(func=cmd_analyze)
     return p
 
 

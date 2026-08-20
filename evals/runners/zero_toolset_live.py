@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import statistics
 import subprocess
 import sys
@@ -19,15 +18,17 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+from hermes_eval.behavior import (
+    PREFERRED_N,
+    classify_fault_text,
+    control_cell_validity,
+    is_infra_startup_failure,
+    retries_after_error,
+    should_retry_infra,
+)
+from hermes_eval.stats import wilson_interval
 from hermes_eval.isolate import isolated_env, live_eval_ready, write_isolated_home
 from hermes_eval.redact import redact_obj
-
-TEXT_TOOL_RE = re.compile(
-    r'(\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:)|'
-    r"(<function=\w+>)|"
-    r"(```(?:json)?\s*\{\s*\"name\")",
-    re.DOTALL,
-)
 
 PROVIDER_ENV = {
     "openrouter": "OPENROUTER_API_KEY",
@@ -73,11 +74,33 @@ def _blocked(reason: str, hermes_sha: str | None) -> dict:
             "cache_read_tokens",
             "duration",
         ],
-        "extras": {"blocked_reason": reason, "reps_requested": None},
+        "extras": {
+            "blocked_reason": reason,
+            "reps_requested": None,
+            "synthetic_substitution": False,
+        },
     }
 
 
-def _config(provider: str, model: str, base_url: str | None, platform_toolsets: dict) -> str:
+def _clear_attempt_artifacts(*paths: Path) -> None:
+    """Drop leftover proof/usage from a failed infra attempt before retry."""
+    for path in paths:
+        try:
+            if path.is_file():
+                path.unlink()
+        except OSError:
+            pass
+
+
+def _config(
+    provider: str,
+    model: str,
+    base_url: str | None,
+    platform_toolsets: dict,
+    *,
+    temperature: float | None,
+    reasoning: str | None = None,
+) -> str:
     lines = [
         "model:",
         f"  provider: {provider}",
@@ -85,6 +108,8 @@ def _config(provider: str, model: str, base_url: str | None, platform_toolsets: 
     ]
     if base_url:
         lines.append(f"  base_url: {base_url}")
+    if temperature is not None:
+        lines.append(f"  temperature: {temperature}")
     lines.extend(
         [
             "fallback_providers: []",
@@ -93,6 +118,12 @@ def _config(provider: str, model: str, base_url: str | None, platform_toolsets: 
             "session_reset:",
             "  mode: disabled",
             "timezone: UTC",
+        ]
+    )
+    if reasoning:
+        lines.extend(["agent:", f"  reasoning_effort: {reasoning}"])
+    lines.extend(
+        [
             "platform_toolsets:",
         ]
     )
@@ -122,11 +153,11 @@ def _load_usage(path: Path) -> dict:
         return {}
 
 
-def _count_tools_from_home(home: Path) -> tuple[int, int, int]:
-    """Best-effort structured tool counts from isolated session artifacts."""
-    total = success = failed = 0
+def _tool_events_from_home(home: Path) -> list[dict]:
+    """Best-effort structured tool events from isolated session artifacts."""
+    found: list[dict] = []
     for path in home.rglob("*.json"):
-        if path.name in {"config.yaml"}:
+        if path.name in {"config.yaml", "usage.json"}:
             continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
@@ -139,13 +170,15 @@ def _count_tools_from_home(home: Path) -> tuple[int, int, int]:
             if not isinstance(ev, dict):
                 continue
             if ev.get("type") in {"tool", "tool_call"} or ev.get("role") == "tool":
-                total += 1
-                status = str(ev.get("status") or "").lower()
-                if status in {"error", "failed"}:
-                    failed += 1
-                else:
-                    success += 1
-    return total, success, failed
+                args = ev.get("arguments") or ev.get("args")
+                found.append(
+                    {
+                        "name": ev.get("name") or ev.get("tool"),
+                        "status": ev.get("status") or "ok",
+                        "arguments": args,
+                    }
+                )
+    return found
 
 
 def _run_arm(
@@ -160,6 +193,9 @@ def _run_arm(
     base_url: str | None,
     nonce: str,
     workspace: Path,
+    temperature: float | None,
+    reasoning: str | None,
+    infra_attempt: int = 0,
 ) -> dict:
     proof = workspace / "proof.txt"
     prompt = (
@@ -169,58 +205,151 @@ def _run_arm(
     usage_file = workspace / "usage.json"
     stdout_file = workspace / "stdout.txt"
     stderr_file = workspace / "stderr.txt"
-    config = _config(provider, model, base_url, platform_toolsets)
+    config = _config(
+        provider, model, base_url, platform_toolsets, temperature=temperature, reasoning=reasoning
+    )
     home = write_isolated_home(root=workspace, config_yaml=config)
     extra = _provider_child_env(provider, api_key, base_url)
     started = time.perf_counter()
-    with isolated_env(home, extra=extra) as env:
-        env["PYTHONPATH"] = str(hermes_root) + os.pathsep + env.get("PYTHONPATH", "")
-        env["HERMES_INFERENCE_MODEL"] = model
-        code = (
-            "from hermes_cli.oneshot import run_oneshot\n"
-            "import sys\n"
-            f"sys.exit(run_oneshot({prompt!r}, model={model!r}, provider={provider!r}, "
-            f"usage_file={str(usage_file)!r}))\n"
+    started_agent = False
+    try:
+        with isolated_env(home, extra=extra) as env:
+            env["PYTHONPATH"] = str(hermes_root) + os.pathsep + env.get("PYTHONPATH", "")
+            env["HERMES_INFERENCE_MODEL"] = model
+            code = (
+                "from hermes_cli.oneshot import run_oneshot\n"
+                "import sys\n"
+                f"sys.exit(run_oneshot({prompt!r}, model={model!r}, provider={provider!r}, "
+                f"usage_file={str(usage_file)!r}))\n"
+            )
+            started_agent = True
+            proc = subprocess.run(
+                [python, "-c", code],
+                cwd=str(workspace),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+    except (FileNotFoundError, OSError) as exc:
+        duration_ms = (time.perf_counter() - started) * 1000
+        infra = is_infra_startup_failure(
+            exit_code=None, stderr=str(exc), usage={}, started=False
         )
-        proc = subprocess.run(
-            [python, "-c", code],
-            cwd=str(workspace),
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
+        if should_retry_infra(infra_attempt, infra=infra):
+            _clear_attempt_artifacts(proof, usage_file, stdout_file, stderr_file)
+            return _run_arm(
+                hermes_root=hermes_root,
+                python=python,
+                arm=arm,
+                platform_toolsets=platform_toolsets,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                base_url=base_url,
+                nonce=nonce,
+                workspace=workspace,
+                temperature=temperature,
+                reasoning=reasoning,
+                infra_attempt=infra_attempt + 1,
+            )
+        return {
+            "arm": arm,
+            "exit_code": None,
+            "duration_ms": round(duration_ms, 1),
+            "task_success": False,
+            "failure_class": "infra_startup",
+            "infra_startup_failure": True,
+            "proof_exists": False,
+            "actual_tool_calls": 0,
+            "successful_tool_calls": 0,
+            "failed_tool_calls": 0,
+            "tool_events": [],
+            "model": model,
+            "provider": provider,
+            "temperature": temperature,
+            "reasoning": reasoning,
+            "notes": [f"infra startup failure: {exc}"],
+        }
     duration_ms = (time.perf_counter() - started) * 1000
     stdout_file.write_text(proc.stdout or "", encoding="utf-8")
     stderr_file.write_text(proc.stderr or "", encoding="utf-8")
     usage = _load_usage(usage_file)
     transcript = (proc.stdout or "") + "\n" + (proc.stderr or "")
-    proof_exists = proof.is_file() and nonce in proof.read_text(encoding="utf-8", errors="replace")
-    tool_total, tool_ok, tool_fail = _count_tools_from_home(home)
-    text_as_tool = bool(TEXT_TOOL_RE.search(transcript)) and tool_total == 0
-    warning = any(
-        token in transcript.lower()
-        for token in ("empty toolset", "empty list", "zero valid toolsets", "err_empty_platform")
+    infra = is_infra_startup_failure(
+        exit_code=proc.returncode,
+        stderr=proc.stderr or "",
+        usage=usage,
+        started=started_agent,
     )
+    # Completed oneshot — including raw <function=...> template dumps — is
+    # a provider/template failure class. Do not silently retry it.
+    if infra and should_retry_infra(infra_attempt, infra=True):
+        _clear_attempt_artifacts(proof, usage_file, stdout_file, stderr_file)
+        return _run_arm(
+            hermes_root=hermes_root,
+            python=python,
+            arm=arm,
+            platform_toolsets=platform_toolsets,
+            provider=provider,
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            nonce=nonce,
+            workspace=workspace,
+            temperature=temperature,
+            reasoning=reasoning,
+            infra_attempt=infra_attempt + 1,
+        )
+    proof_exists = proof.is_file() and nonce in proof.read_text(encoding="utf-8", errors="replace")
+    tool_events = _tool_events_from_home(home)
+    retry = retries_after_error(tool_events)
+    tool_total = len(tool_events)
+    tool_fail = sum(1 for e in tool_events if str(e.get("status") or "").lower() in {"error", "failed"})
+    tool_ok = tool_total - tool_fail
+    flags = classify_fault_text(
+        transcript, task_success=proof_exists, actual_tool_calls=tool_total
+    )
+    schema_count = 0 if arm == "fault" else 1
     return {
         "arm": arm,
         "exit_code": proc.returncode,
         "duration_ms": round(duration_ms, 1),
         "task_success": proof_exists,
-        "textual_pseudo_tool_call": text_as_tool,
+        "failure_class": (
+            "infra_startup"
+            if infra
+            else (
+                "provider_template"
+                if flags.get("pseudo_xml_function") or flags.get("pseudo_json_like")
+                else "completed"
+            )
+        ),
+        "infra_startup_failure": infra,
+        **flags,
         "actual_tool_calls": tool_total,
         "failed_tool_calls": tool_fail,
         "successful_tool_calls": tool_ok,
+        "tool_events": [
+            {"name": e.get("name"), "status": e.get("status"), "arguments_hash": None}
+            for e in tool_events
+        ],
+        "retries_after_error": retry["retries_after_error"],
+        "identical_retries_after_error": retry["identical_retries_after_error"],
         "turns": usage.get("api_calls"),
         "input_tokens": usage.get("input_tokens"),
         "output_tokens": usage.get("output_tokens"),
         "cache_read_tokens": usage.get("cache_read_tokens"),
         "cache_write_tokens": usage.get("cache_write_tokens"),
         "total_tokens": usage.get("total_tokens"),
-        "diagnostic_emitted": warning,
         "proof_exists": proof_exists,
+        "proof_path": "proof.txt",
+        "tool_schema_count": schema_count,
         "model": usage.get("model") or model,
         "provider": usage.get("provider") or provider,
+        "temperature": temperature,
+        "reasoning": reasoning or usage.get("reasoning") or None,
+        "prompt_chars": len(prompt),
         "transcript_sha_only": True,
         "stdout_chars": len(proc.stdout or ""),
     }
@@ -240,7 +369,7 @@ def _mean(rows: list[dict], key: str) -> float | None:
     return round(statistics.mean(vals), 3)
 
 
-def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = 5) -> dict:
+def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = PREFERRED_N) -> dict:
     ready, reason = live_eval_ready()
     if not ready:
         return _blocked(reason, hermes_sha)
@@ -249,6 +378,12 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = 5) -> dic
     api_key = os.environ["HERMES_EVAL_API_KEY"].strip()
     base_url = (os.environ.get("HERMES_EVAL_BASE_URL") or "").strip() or None
     python = os.environ.get("HERMES_EVAL_PYTHON", "").strip() or sys.executable
+    temperature_raw = (os.environ.get("HERMES_EVAL_TEMPERATURE") or "0").strip()
+    try:
+        temperature = float(temperature_raw)
+    except ValueError:
+        temperature = 0.0
+    reasoning = (os.environ.get("HERMES_EVAL_REASONING") or "").strip() or None
     started = time.perf_counter()
     root = write_isolated_home()
     control_rows = []
@@ -259,48 +394,82 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = 5) -> dic
         fault_dir = root / f"fault-{i}"
         control_dir.mkdir(parents=True)
         fault_dir.mkdir(parents=True)
+        common = dict(
+            hermes_root=hermes_root,
+            python=python,
+            provider=provider,
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            temperature=temperature,
+            reasoning=reasoning,
+        )
         control_rows.append(
             _run_arm(
-                hermes_root=hermes_root,
-                python=python,
+                **common,
                 arm="control",
                 platform_toolsets={"cli": ["hermes-cli"]},
-                provider=provider,
-                model=model,
-                api_key=api_key,
-                base_url=base_url,
                 nonce=nonce + "-C",
                 workspace=control_dir,
             )
         )
         fault_rows.append(
             _run_arm(
-                hermes_root=hermes_root,
-                python=python,
+                **common,
                 arm="fault",
                 platform_toolsets={
                     "cli": [],
                     "telegram": ["hermes-telegram"],
                     "discord": ["hermes-discord"],
                 },
-                provider=provider,
-                model=model,
-                api_key=api_key,
-                base_url=base_url,
                 nonce=nonce + "-F",
                 workspace=fault_dir,
             )
         )
     duration_ms = (time.perf_counter() - started) * 1000
-    control_task_success_rate = _rate(control_rows, "task_success")
-    fault_task_success_rate = _rate(fault_rows, "task_success")
+    c_ok = sum(1 for r in control_rows if r.get("task_success"))
+    f_ok = sum(1 for r in fault_rows if r.get("task_success"))
+    control_success = wilson_interval(c_ok, len(control_rows))
+    fault_success = wilson_interval(f_ok, len(fault_rows))
+    validity = control_cell_validity(c_ok, len(control_rows))
+    control_task_success_rate = control_success.get("rate")
+    fault_task_success_rate = fault_success.get("rate")
     fault_textual_pseudo_tool_call_rate = _rate(fault_rows, "textual_pseudo_tool_call")
     fault_diagnostic_rate = _rate(fault_rows, "diagnostic_emitted")
     fault_tool_rate = _mean(fault_rows, "actual_tool_calls")
+    params = {
+        "temperature": temperature,
+        "reasoning": reasoning,
+        "python": python,
+        "base_url_set": bool(base_url),
+    }
     # Completing the live matrix is the runner success. Known-good makes
     # zero tools loud; it does not restore tools. Fault-arm task success
     # is expected ~0 and is never evidence the salvage commit fixed the task.
     success = True
+    notes = [
+        (
+            f"reps={reps} control_task_success_rate={control_task_success_rate} "
+            f"fault_task_success_rate={fault_task_success_rate} "
+            f"fault_textual_pseudo_tool_call_rate={fault_textual_pseudo_tool_call_rate} "
+            f"fault_diagnostic_rate={fault_diagnostic_rate} "
+            f"fault_mean_tool_calls={fault_tool_rate} "
+            f"cell_valid_for_fault_comparison={validity.get('valid')}"
+        ),
+        (
+            "Fault-arm task success is expected ~0. Known-good makes an "
+            "empty toolset loud; it does not restore tools. Do not treat "
+            "fault_task_success_rate as evidence the salvage commit fixed the task."
+        ),
+        "Secrets not stored. Transcripts hashed by char count only.",
+        (
+            "Provider/template failures such as raw <function=...> stay their "
+            "own class. Only infrastructure startup failures before the eval "
+            "run begins may retry once."
+        ),
+    ]
+    if not validity.get("valid"):
+        notes.append("CONTROL success is not reasonable — fault behavior is not interpreted.")
     result = {
         "fixture": "zero-toolset-live",
         "fixture_version": 2,
@@ -321,27 +490,24 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = 5) -> dic
         "recovered": None,
         "cache_prefix_stable": None,
         "duration_ms": round(duration_ms, 1),
-        "notes": [
-            (
-                f"reps={reps} control_task_success_rate={control_task_success_rate} "
-                f"fault_task_success_rate={fault_task_success_rate} "
-                f"fault_textual_pseudo_tool_call_rate={fault_textual_pseudo_tool_call_rate} "
-                f"fault_diagnostic_rate={fault_diagnostic_rate} "
-                f"fault_mean_tool_calls={fault_tool_rate}"
-            ),
-            (
-                "Fault-arm task success is expected ~0. Known-good makes an "
-                "empty toolset loud; it does not restore tools. Do not treat "
-                "fault_task_success_rate as evidence the salvage commit fixed the task."
-            ),
-            "Secrets not stored. Transcripts hashed by char count only.",
-        ],
+        "notes": notes,
         "not_observable": [],
         "extras": {
             "reps": reps,
+            "model_params": params,
+            "cell_valid_for_fault_comparison": bool(validity.get("valid")),
+            "control_validity": validity,
+            "control_task_success": control_success,
+            "fault_task_success": fault_success,
             "control_task_success_rate": control_task_success_rate,
             "fault_task_success_rate": fault_task_success_rate,
             "fault_textual_pseudo_tool_call_rate": fault_textual_pseudo_tool_call_rate,
+            "fault_pseudo_json_like_rate": _rate(fault_rows, "pseudo_json_like"),
+            "fault_pseudo_xml_function_rate": _rate(fault_rows, "pseudo_xml_function"),
+            "fault_pseudo_other_rate": _rate(fault_rows, "pseudo_other"),
+            "fault_hallucinated_completion_rate": _rate(fault_rows, "hallucinated_completion"),
+            "fault_explicit_capability_failure_rate": _rate(fault_rows, "explicit_capability_failure"),
+            "fault_remediation_requested_rate": _rate(fault_rows, "remediation_requested"),
             "fault_diagnostic_rate": fault_diagnostic_rate,
             "fault_mean_actual_tool_calls": fault_tool_rate,
             "control_mean_turns": _mean(control_rows, "turns"),
@@ -363,7 +529,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--hermes-root", required=True)
     p.add_argument("--hermes-sha", required=True)
     p.add_argument("--out", required=True)
-    p.add_argument("--reps", type=int, default=int(os.environ.get("HERMES_EVAL_REPS", "5")))
+    p.add_argument("--reps", type=int, default=int(os.environ.get("HERMES_EVAL_REPS", str(PREFERRED_N))))
     args = p.parse_args(argv)
     result = run(Path(args.hermes_root), args.hermes_sha, Path(args.out), reps=args.reps)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)

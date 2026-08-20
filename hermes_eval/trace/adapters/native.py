@@ -353,8 +353,14 @@ def _live(result: dict[str, Any]) -> dict[str, Any]:
         "control_task_success_rate": extras.get("control_task_success_rate"),
         "fault_task_success_rate": extras.get("fault_task_success_rate"),
         "fault_textual_pseudo_tool_call_rate": extras.get("fault_textual_pseudo_tool_call_rate"),
+        "fault_pseudo_json_like_rate": extras.get("fault_pseudo_json_like_rate"),
+        "fault_pseudo_xml_function_rate": extras.get("fault_pseudo_xml_function_rate"),
+        "fault_pseudo_other_rate": extras.get("fault_pseudo_other_rate"),
+        "fault_hallucinated_completion_rate": extras.get("fault_hallucinated_completion_rate"),
+        "fault_explicit_capability_failure_rate": extras.get("fault_explicit_capability_failure_rate"),
         "fault_diagnostic_rate": extras.get("fault_diagnostic_rate"),
         "fault_mean_actual_tool_calls": extras.get("fault_mean_actual_tool_calls"),
+        "cell_valid_for_fault_comparison": extras.get("cell_valid_for_fault_comparison"),
         "synthetic_substitution": False,
     }
     b.metrics.update(
@@ -375,6 +381,20 @@ def _live_row(b: TraceBuilder, row: dict[str, Any], span: str, arm: str) -> None
             "task_success": row.get("task_success"),
             "proof_exists": row.get("proof_exists"),
             "actual_tool_calls": row.get("actual_tool_calls"),
+            "tool_schema_count": row.get("tool_schema_count"),
+        },
+        span_id=span,
+    )
+    b.event(
+        "model.request",
+        {
+            "arm": arm,
+            "model": row.get("model"),
+            "provider": row.get("provider"),
+            "temperature": row.get("temperature"),
+            "reasoning": row.get("reasoning"),
+            "prompt_chars": row.get("prompt_chars"),
+            "tool_schema_count": row.get("tool_schema_count"),
         },
         span_id=span,
     )
@@ -382,12 +402,42 @@ def _live_row(b: TraceBuilder, row: dict[str, Any], span: str, arm: str) -> None
         "model.response",
         {
             "textual_pseudo_tool_call": bool(row.get("textual_pseudo_tool_call")),
+            "pseudo_json_like": bool(row.get("pseudo_json_like")),
+            "pseudo_xml_function": bool(row.get("pseudo_xml_function")),
+            "pseudo_other": bool(row.get("pseudo_other")),
+            "hallucinated_completion": bool(row.get("hallucinated_completion")),
+            "explicit_capability_failure": bool(row.get("explicit_capability_failure")),
+            "remediation_requested": bool(row.get("remediation_requested")),
             "turns": row.get("turns"),
+            "stdout_chars": row.get("stdout_chars"),
         },
         span_id=span,
     )
+    for ev in row.get("tool_events") or []:
+        if not isinstance(ev, dict):
+            continue
+        call_id = b.event(
+            "tool.call",
+            {
+                "name": ev.get("name"),
+                "arguments_hash": ev.get("arguments_hash"),
+            },
+            span_id=span,
+        )
+        b.event(
+            "tool.result",
+            {
+                "name": ev.get("name"),
+                "status": ev.get("status"),
+                "ok": str(ev.get("status") or "").lower() not in {"error", "failed"},
+            },
+            span_id=span,
+            parent_id=call_id,
+        )
     if row.get("diagnostic_emitted"):
         b.diagnostic("empty-toolset", "live diagnostic", span_id=span)
+    if row.get("proof_path"):
+        b.artifacts["paths"].append(str(row.get("proof_path")))
     b.event(
         "final.output",
         {
@@ -395,10 +445,72 @@ def _live_row(b: TraceBuilder, row: dict[str, Any], span: str, arm: str) -> None
             "task_success": bool(row.get("task_success")),
             "input_tokens": row.get("input_tokens"),
             "output_tokens": row.get("output_tokens"),
+            "total_tokens": row.get("total_tokens"),
+            "cache_read_tokens": row.get("cache_read_tokens"),
+            "cache_write_tokens": row.get("cache_write_tokens"),
             "duration_ms": row.get("duration_ms"),
+            "oracle": "filesystem_nonce_proof",
         },
         span_id=span,
     )
+
+
+def emit_live_run(
+    result: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    arm: str,
+    index: int,
+) -> dict[str, Any]:
+    """Standalone TraceV1 for one live repetition. Existing event types only."""
+    fixture = result.get("fixture") or "zero-toolset-live"
+    run_id = (
+        f"{fixture}:{arm}:{index}:"
+        f"{(result.get('hermes_ref') or 'unknown')[:12]}:"
+        f"{(result.get('timestamp') or 'na')}"
+    )
+    classification = result.get("classification")
+    if isinstance(classification, str):
+        classification = [classification]
+    b = TraceBuilder(
+        run_id=run_id,
+        source="live_zero_toolset",
+        adapter=ADAPTER,
+        fixture=fixture,
+        hermes_sha=result.get("hermes_ref"),
+        harness_sha=result.get("harness_sha"),
+        harness_dirty=result.get("harness_dirty"),
+        model=row.get("model") or result.get("model"),
+        provider=row.get("provider") or result.get("provider"),
+        classification=classification,
+    )
+    b.provenance["source"] = "live_zero_toolset"
+    b.initial_state = {
+        "arm": arm,
+        "rep": index,
+        "status": result.get("status") or "RUN",
+        "tool_schema_count": row.get("tool_schema_count"),
+    }
+    _live_row(b, row, arm, arm)
+    b.final_state = {
+        "status": "RUN",
+        "arm": arm,
+        "rep": index,
+        "task_success": bool(row.get("task_success")),
+        "runner_task_success": bool(row.get("task_success")),
+        "proof_exists": bool(row.get("proof_exists")),
+        "synthetic_substitution": False,
+    }
+    b.metrics = {
+        "turns": row.get("turns"),
+        "tool_calls": row.get("actual_tool_calls"),
+        "input_tokens": row.get("input_tokens"),
+        "output_tokens": row.get("output_tokens"),
+        "total_tokens": row.get("total_tokens"),
+        "duration_ms": row.get("duration_ms"),
+        "task_success": bool(row.get("task_success")),
+    }
+    return b.to_dict()
 
 
 def _prefix(result: dict[str, Any]) -> dict[str, Any]:

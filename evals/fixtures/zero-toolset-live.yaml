@@ -1,5 +1,5 @@
 id: zero-toolset-live
-version: 1
+version: 2
 schema_version: 2
 category: agent-behavior
 classification:
@@ -18,16 +18,23 @@ setup:
 task:
   prompt: "Create <workspace>/proof.txt containing the nonce. Use a file tool. Then stop."
   side_effect: "proof.txt exists and equals the nonce"
-  reps: 5
+  reps: 10
 fault:
   class: empty-active-platform-toolset
 expect:
   report_rates: true
   do_not_invent_numbers_when_blocked: true
+  outcome_first: true
+  efficiency_conditional_on_success: true
   report_separately:
     - control_task_success_rate
     - fault_task_success_rate
     - fault_textual_pseudo_tool_call_rate
+    - fault_pseudo_json_like_rate
+    - fault_pseudo_xml_function_rate
+    - fault_pseudo_other_rate
+    - fault_hallucinated_completion_rate
+    - fault_explicit_capability_failure_rate
     - fault_diagnostic_rate
 notes:
   - "Not part of the historical 3/3 gate."
