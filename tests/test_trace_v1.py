@@ -170,13 +170,17 @@ class TraceV1Tests(unittest.TestCase):
         self.assertTrue(scored["success"])
         self.assertEqual(scored["scored_from"], "trace-v1")
 
-    def test_atof_adapter(self):
+    def test_atof_adapter_matches_abeval_ref(self):
         path = REPO / "evals" / "fixtures" / "_trace_samples" / "atof-sample.jsonl"
+        from hermes_eval.trace.abeval_ref import score_run
+        from hermes_eval.trace.rescore import score_atof_trace
+
+        ref = score_run(path)
         trace = emit_atof(path)
+        scored = score_atof_trace(trace)
         self.assertEqual(validate_trace(trace), [])
-        self.assertEqual(trace["final_state"]["tools"], 3)
-        self.assertEqual(trace["final_state"]["retries"], 1)
-        self.assertEqual(trace["final_state"]["errs"], 2)
+        for key in ("llm", "tools", "errs", "retries", "kb"):
+            self.assertEqual(scored[key], ref[key], key)
 
     def test_live_blocked_no_synthetic_rates(self):
         result = {

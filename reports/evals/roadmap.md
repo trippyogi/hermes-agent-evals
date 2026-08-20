@@ -7,10 +7,13 @@ Two products:
    in GitHub Actions.
 2. **Hermes Behavioral Observatory** — slower, repeated model runs.
    Not ready. Live matrix still BLOCKED without `HERMES_EVAL_*`.
+   Real ATOF ingestion is unblocked (v0.3.1 canonical August 6 archive);
+   we still lack our own live repeated-run cell and adjudicated waste labels.
 
 | Milestone | Goal | Main output | Gate |
 |---|---|---|---|
 | v0.3 Trace spine | Neutral representation | TraceV1 + adapters + re-scoring | Existing 3 fixtures reproduce from trace |
+| v0.3.1 Toolperf ingestion | External validation | 108-run ATOF archive → TraceV1 | Metric identity vs abeval; no new fixtures |
 | v0.4 Behavioral statistics | Stochastic behavior | Repeated live cells, reliability/noise | Real distributions, not anecdotes |
 | v0.5 Stateful task contract | Grade outcomes without one trajectory | State/frame-condition scorer | Correct alternative trajectories pass |
 | v0.6 Production corpus | Mine real Hermes behavior | Adjudicated ATOF → promotable fixtures | Human-labeled production evidence |

@@ -73,12 +73,14 @@ jobs:
       - name: Fetch SUT SHAs including origin/main
         run: |
           export PYTHONPATH="$PWD"
-          python -m hermes_eval fetch-sut --current
-      - name: Install Hermes deps from fetched current worktree
+          python -m hermes_eval fetch-sut --current > fetch-sut.json
+          python -c "import json; d=json.load(open('fetch-sut.json')); print('fetched', d['fetched'])"
+      - name: Install Hermes deps from resolved current worktree
         run: |
           python -m pip install -U pip
-          WT=$(ls -d .worktrees/* | tail -n 1)
-          python -m pip install -e "$WT"
+          CURRENT=$(python -c "import json; print(json.load(open('fetch-sut.json'))['fetched'][-1])")
+          echo "current SHA $CURRENT"
+          python -m pip install -e ".worktrees/${CURRENT:0:12}"
       - name: Run current canary (no false regressions)
         env:
           PYTHONPATH: ${{ github.workspace }}

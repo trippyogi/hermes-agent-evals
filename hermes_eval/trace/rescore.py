@@ -324,6 +324,46 @@ def score_prefix(trace: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def score_atof_trace(trace: dict[str, Any]) -> dict[str, Any]:
+    """Recompute abeval-equivalent metrics from TraceV1 events only."""
+    llm = tools = errs = retries = 0
+    result_bytes = 0
+    last_err_tool = None
+    for ev in trace.get("events") or []:
+        if not isinstance(ev, dict):
+            continue
+        kind = ev.get("type")
+        payload = ev.get("payload") or {}
+        if kind == "model.response" and not payload.get("policy_event"):
+            llm += 1
+        elif kind == "tool.call":
+            name = payload.get("name")
+            tools += 1
+            if last_err_tool == name:
+                retries += 1
+        elif kind == "tool.result":
+            name = payload.get("name")
+            result_bytes += int(payload.get("result_bytes") or 0)
+            err = payload.get("ok") is False
+            if err:
+                errs += 1
+                last_err_tool = name
+            else:
+                last_err_tool = None
+    return {
+        "llm": llm,
+        "tools": tools,
+        "errs": errs,
+        "retries": retries,
+        "kb": result_bytes // 1024,
+        "tool_result_bytes": result_bytes,
+        "llm_turns": llm,
+        "tool_calls": tools,
+        "tool_errors": errs,
+        "retry_after_error": retries,
+    }
+
+
 def score_atof_file(path: str, **kwargs: Any) -> dict[str, Any]:
     trace = emit_atof(path, **kwargs)
     errors = validate_trace(trace)
@@ -331,6 +371,6 @@ def score_atof_file(path: str, **kwargs: Any) -> dict[str, Any]:
         "success": not errors,
         "trace": trace,
         "errors": errors,
-        "metrics": trace.get("metrics") or {},
+        "metrics": score_atof_trace(trace),
         "scored_from": "trace-v1",
     }

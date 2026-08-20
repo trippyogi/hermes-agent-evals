@@ -11,7 +11,9 @@ Historical validation is the gate: a fixture is useful only if it can
 separate a known-bad Hermes SHA from a known-good/fixed SHA.
 
 v0.3 makes **TraceV1** the scoreable artifact: run once, store a neutral
-trace, re-score later without the original runner extras. The
+trace, re-score later without the original runner extras. v0.3.1
+ingests the canonical August 6 `hermes-toolperf-evals` ATOF archive as
+an external validation corpus (108 runs, no new model spend). The
 deterministic canary stays on maintenance; new research goes through
 traces, repeated live behavior, and stateful scoring.
 
@@ -40,10 +42,18 @@ It lives **outside** hermes-agent on purpose.
 
 ## Relationship to hermes-toolperf-evals
 
-`hermes-toolperf-evals` stays the home of the 9-trap A/B toolperf battery.
-This repo is the dedicated research tree for the agent-behavior /
-state-recovery / instrumentation split, with a compare runner and a
-historical-validation gate.
+`hermes-toolperf-evals` is the canonical production-derived tool-efficiency
+experiment: nine induced-failure tasks, real model runs, and a checked-in
+ATOF archive. This repo does **not** duplicate those tasks. v0.3.1
+imports the August 6 rerun into TraceV1 (`python -m hermes_eval
+ingest-toolperf`) and re-scores it.
+
+This repo is the general regression / behavioral observability layer:
+TraceV1, historical canaries, state invariants, re-scoring, and future
+behavioral corpora. Read-only input; no writes to the Nous toolperf repo.
+
+Do not optimize raw turn count. Separate outcome, efficiency given
+success, recovery cost, and failure quality. No composite score yet.
 
 ## Upstream policy
 
@@ -91,7 +101,7 @@ python -m hermes_eval compare --historical --suite core-failures
 python -m hermes_eval canary
 python -m hermes_eval trace rescore --trace results\<run>\trace.json
 python -m hermes_eval trace atof evals\fixtures\_trace_samples\atof-sample.jsonl
-python -m unittest discover -s tests -v
+python -m hermes_eval ingest-toolperf
 python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
 python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 5
 python -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
@@ -138,6 +148,8 @@ Optional env:
 - `HERMES_EVAL_ALLOW_FETCH=0` — disable network fetch
 - `HERMES_EVAL_SUT_SOURCES` — extra local clones (never required)
 - `HERMES_EVAL_ATOF_DIR` — real ATOF traces for waste labeling
+- `HERMES_EVAL_TOOLPERF_RERUN` — path to `results/2026-08-06_rerun` (default: sibling `../hermes-toolperf-evals/results/2026-08-06_rerun`)
+- `HERMES_EVAL_TOOLPERF_CACHE` — extracted ATOF cache (default: `.cache/toolperf-2026-08-06`)
 
 ## Pinned Hermes SHAs
 

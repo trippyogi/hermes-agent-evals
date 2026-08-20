@@ -386,7 +386,7 @@ def render_label_sheet(scan: dict) -> str:
         source = str(ep.get("source") or "").replace("|", "/")
         labels = ",".join(ep.get("w_labels") or [])
         lines.append(
-            f"| {i} | {labels} | `{ep.get('tool') or ''}` | `{source[-60:]}` | "
+            f"| {i} | {labels} | `{ep.get('tool') or ''}` | `{source}` | "
             f"{ep.get('index')} | {ep.get('hit_count')} | {ep.get('state_changed')} | "
             f"{evidence} | |"
         )

@@ -466,6 +466,43 @@ def cmd_trace_atof(args: argparse.Namespace) -> int:
     return 0 if not errors else 1
 
 
+def cmd_ingest_toolperf(args: argparse.Namespace) -> int:
+    from hermes_eval.toolperf_ingest import default_rerun_dir, ingest, render_label_sheet, render_report
+
+    rerun = Path(args.rerun) if args.rerun else default_rerun_dir()
+    payload = ingest(rerun)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dest = Path(args.out) if args.out else (REPO_ROOT / "results" / f"toolperf-ingest-{stamp}.json")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    slim = dict(payload)
+    # Keep bulky per-run traces out of git; JSON in results/ is gitignored.
+    dest.write_text(json.dumps(slim, indent=2) + "\n", encoding="utf-8")
+    report = render_report(payload)
+    report_path = REPO_ROOT / "reports" / "evals" / "v0.3.1-toolperf-ingestion.md"
+    report_path.write_text(report, encoding="utf-8")
+    sheet = render_label_sheet(payload)
+    sheet_path = REPO_ROOT / "reports" / "evals" / "wasted-turn-labeling-toolperf-episodes.md"
+    sheet_path.write_text(sheet, encoding="utf-8")
+    print(
+        json.dumps(
+            {
+                "n_runs": payload["n_runs"],
+                "gate1_metric_matches": payload["gate1_metric_matches"],
+                "mismatches": len(payload["mismatches"]),
+                "REAL_ATOF_DATA": payload["REAL_ATOF_DATA"],
+                "json": str(dest),
+                "report": str(report_path),
+                "label_sheet": str(sheet_path),
+            },
+            indent=2,
+        )
+    )
+    sys.stderr.write(f"\n{report}\n")
+    if payload["n_runs"] != 108 or payload["mismatches"]:
+        return 2
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="hermes-eval",
@@ -561,6 +598,14 @@ def build_parser() -> argparse.ArgumentParser:
     atof_p.add_argument("path")
     atof_p.add_argument("--out")
     atof_p.set_defaults(func=cmd_trace_atof)
+
+    ingest_p = sub.add_parser(
+        "ingest-toolperf",
+        help="Import hermes-toolperf-evals 2026-08-06 ATOF archive into TraceV1 (read-only)",
+    )
+    ingest_p.add_argument("--rerun", help="Path to results/2026-08-06_rerun")
+    ingest_p.add_argument("--out", help="JSON summary path")
+    ingest_p.set_defaults(func=cmd_ingest_toolperf)
     return p
 
 

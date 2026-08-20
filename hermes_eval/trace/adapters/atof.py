@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
+from hermes_eval.redact import redact_obj
 from hermes_eval.trace.model import TraceBuilder
 
 ADAPTER = "hermes_eval.trace.adapters.atof"
@@ -53,29 +56,49 @@ def emit_atof(
     open_llm: str | None = None
     open_tool: dict[str, str] = {}
     llm = tools = errs = retries = 0
+    total_result_bytes = 0
     last_err_tool = None
     for ev in events_in:
         kind, cat, scope = ev.get("kind"), ev.get("category"), ev.get("scope_category")
         name = ev.get("name")
         if kind == "scope" and cat == "llm" and scope == "start":
             open_llm = b.event("model.request", {"name": name, "data_keys": _keys(ev.get("data"))})
-            llm += 1
         elif kind == "scope" and cat == "llm" and scope == "end":
             b.event(
                 "model.response",
                 {"name": name, "metadata": _meta(ev)},
                 parent_id=open_llm,
             )
+            llm += 1
             open_llm = None
         elif kind == "scope" and cat == "tool" and scope == "start":
-            eid = b.event("tool.call", {"name": name, "arguments_redacted": True})
+            data = ev.get("data")
+            args = data if isinstance(data, dict) else None
+            eid = b.event(
+                "tool.call",
+                {
+                    "name": name,
+                    "arguments": redact_obj(args) if args is not None else None,
+                    "arguments_hash": _hash_args(args),
+                },
+            )
             open_tool[str(name)] = eid
             tools += 1
             if last_err_tool == name:
                 retries += 1
         elif kind == "scope" and cat == "tool" and scope == "end":
+            d = ev.get("data")
+            ds = d if isinstance(d, str) else json.dumps(d or "")
+            result_bytes = len(ds)
             status = (ev.get("metadata") or {}).get("status") or "ok"
             err = status not in (None, "ok")
+            body_looks_like_error = False
+            if not err:
+                if re.search(r'"error":\s*"(?!null)', ds[:1500]) or re.search(
+                    r'"exit_code":\s*[1-9-]', ds[:200]
+                ):
+                    body_looks_like_error = True
+                    err = True
             if err:
                 errs += 1
                 last_err_tool = name
@@ -83,9 +106,16 @@ def emit_atof(
                 last_err_tool = None
             b.event(
                 "tool.result",
-                {"name": name, "status": status, "ok": not err},
+                {
+                    "name": name,
+                    "status": status,
+                    "ok": not err,
+                    "result_bytes": result_bytes,
+                    "body_looks_like_error": body_looks_like_error,
+                },
                 parent_id=open_tool.get(str(name)),
             )
+            total_result_bytes += result_bytes
         elif ev.get("type") in {"tool", "tool_call"}:
             b.event("tool.call", {"name": ev.get("name"), "status": ev.get("status")})
             tools += 1
@@ -95,10 +125,6 @@ def emit_atof(
         else:
             continue
     if summary:
-        llm = summary.get("llm", llm)
-        tools = summary.get("tools", tools)
-        errs = summary.get("errs", errs)
-        retries = summary.get("retries", retries)
         tokens = summary.get("tokens") or {}
         b.metrics.update(
             {
@@ -107,11 +133,40 @@ def emit_atof(
                 "total_tokens": tokens.get("total"),
             }
         )
-    b.metrics.update({"turns": llm, "tool_calls": tools, "errors": errs, "retries": retries})
-    b.final_state = {"llm": llm, "tools": tools, "errs": errs, "retries": retries}
+        # Event walk is the source of llm/tools/errs/retries/kb. Summary
+        # token fields are extra; do not overwrite ATOF event counts.
+    kb = total_result_bytes // 1024
+    b.metrics.update(
+        {
+            "llm_turns": llm,
+            "turns": llm,
+            "tool_calls": tools,
+            "tool_errors": errs,
+            "retry_after_error": retries,
+            "tool_result_bytes": total_result_bytes,
+            "errors": errs,
+            "retries": retries,
+            "kb": kb,
+        }
+    )
+    b.final_state = {
+        "llm": llm,
+        "tools": tools,
+        "errs": errs,
+        "retries": retries,
+        "kb": kb,
+        "tool_result_bytes": total_result_bytes,
+    }
     b.event("final.output", dict(b.final_state))
     b.artifacts["paths"].append(str(src).replace("\\", "/"))
     return b.to_dict()
+
+
+def _hash_args(args: Any) -> str | None:
+    if args is None:
+        return None
+    blob = json.dumps(args, sort_keys=True, default=str).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()[:16]
 
 
 def _keys(data: Any) -> list[str]:
@@ -123,5 +178,5 @@ def _keys(data: Any) -> list[str]:
 def _meta(ev: dict[str, Any]) -> dict[str, Any]:
     meta = ev.get("metadata")
     if isinstance(meta, dict):
-        return {k: v for k, v in meta.items() if k.lower() not in {"authorization", "api_key", "token"}}
+        return redact_obj(meta)
     return {}

@@ -97,6 +97,8 @@ No product-tree edits. No user config.
 
 ## Existing tooling we did not reimplement
 
-- `hermes-toolperf-evals/abeval` — 9 traps, PYTHONPATH arms, ATOF
+- `hermes-toolperf-evals/abeval` — 9 traps, PYTHONPATH arms, ATOF.
+  v0.3.1 ingests the canonical August 6 ATOF archive into TraceV1;
+  it does not reimplement the nine tasks.
 - `hermes-compression-eval` — probe/judge quality of `compress()`
 - In-tree `scripts/toolperf_abeval/` — same A/B harness, less data
