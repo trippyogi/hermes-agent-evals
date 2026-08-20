@@ -13,9 +13,17 @@ honesty:
   note: "Hashes outgoing request payloads. Does not claim provider cache hits without cache_read_tokens."
 task:
   sequence:
-    - unchanged multi-turn conversation
-    - suffix-only growth
-    - one compression boundary
+    - accumulate one session T1-T4 (same system/tools, suffix growth)
+    - T5 force compress()
 expect:
   hashes_only: true
-  detect_unexpected_prefix_churn: true
+  accumulating_history: true
+  report_per_turn:
+    - turn
+    - system_hash
+    - tools_hash
+    - message_count
+    - shared_prefix_count
+    - prefix_retention_ratio
+    - compression_event
+    - first_divergence

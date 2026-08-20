@@ -1,17 +1,28 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "harness": {
     "name": "hermes-agent-evals",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "fixture_schema_version": 2,
-    "note": "harness_sha is recorded per-run from git rev-parse HEAD; this file pins Hermes SUT SHAs only."
+    "v0_1_tag": "v0.1.0",
+    "v0_1_sha": "0641093d26fe0fa7c91a771029dd61441a06ff6a",
+    "note": "harness_sha is recorded per-run from git rev-parse HEAD. This file pins Hermes SUT SHAs and git remotes, not operator filesystem paths."
   },
   "policy": {
     "moving_labels_forbidden": true,
     "aliases_expand_to_full_sha": true,
     "do_not_read_user_hermes_home": true,
     "isolated_hermes_home": true,
-    "secrets": "fingerprint_only"
+    "secrets": "fingerprint_only",
+    "no_workstation_paths_in_manifest": true
+  },
+  "fetch": {
+    "sut_remotes": [
+      "https://github.com/NousResearch/hermes-agent.git",
+      "https://github.com/trippyogi/hermes-agent.git"
+    ],
+    "cache_dir_relative": ".cache/hermes-sut",
+    "worktree_dir_relative": ".worktrees"
   },
   "known_bad": {
     "id": "pinned-origin-main-2026-08-19",
@@ -24,30 +35,29 @@
     "empty-toolset-salvage": {
       "sha": "ed5b9152ce975ada68f0b53a21c4806f29ed0852",
       "subject": "fix(config): warn on empty per-platform toolset lists",
-      "worktree": "C:\\dev\\hermes-agent-wt-salvage-empty-toolsets",
-      "parent": "87e32b6b30f3e5113e26ac7468319d000a3affac"
+      "parent": "87e32b6b30f3e5113e26ac7468319d000a3affac",
+      "remote": "https://github.com/NousResearch/hermes-agent.git"
     },
     "delegate-fallback-90009": {
       "sha": "c6a2fb48af74e3c795015aeb6e615733a9b5bac5",
       "subject": "fix(delegate): inherit coherent parent runtime after provider fallback",
-      "worktree": "C:\\dev\\hermes-agent-wt-90009-author-fix",
       "parent": "49cc3708e50d146fbfce90d4e733712f16cbbda0",
       "pr": "NousResearch/hermes-agent#90209",
       "issue": "NousResearch/hermes-agent#90009",
       "prior_sha": "465f0d4872cf616ff0a095b7b48b506fd377876a",
       "prior_parent": "87e32b6b30f3e5113e26ac7468319d000a3affac",
-      "provenance": "465f0d4872 is the same product commit first opened on main 87e32b6b (PR-open SHA). c6a2fb48af is the replay onto later main 49cc3708e5 after CI slice 6/12 (kanban fixture) and 9/12 (MoA switch) failures. Product delta between the two SHAs is test-only (tests/tools/test_delegate_kanban_isolation.py +6). Eval known_good is the later replay SHA because that is the reviewed PR head and the worktree HEAD used for historical validation."
+      "remote": "https://github.com/NousResearch/hermes-agent.git",
+      "provenance": "465f0d4872 is the same product commit first opened on main 87e32b6b (PR-open SHA). c6a2fb48af is the replay onto later main 49cc3708e5 after CI slice 6/12 (kanban fixture) and 9/12 (MoA switch) failures. Product delta between the two SHAs is test-only (tests/tools/test_delegate_kanban_isolation.py +6). Eval known_good is the later replay SHA because that is the reviewed PR head used for historical validation."
     },
     "pin-scope-90021": {
       "sha": "623b93200779d31d416eb2c5f9116106de6f5adb",
       "subject": "fix(desktop): keep pin list identity gateway-wide",
-      "worktree": "C:\\dev\\hermes-agent-wt-fix-pin-connection-scope",
       "parent": "657550716f370bd5d1e848a57fc24b9c404cf982",
       "issue": "NousResearch/hermes-agent#90021",
       "prior_sha": "3582a128c767a206713cdd4ae1cc6b770144539b",
       "prior_parent": "87e32b6b30f3e5113e26ac7468319d000a3affac",
-      "documented_in": "C:\\dev\\hermes-agent\\reports\\90021-pin-scope.md",
-      "provenance": "3582a128c7 is the original pin-scope fix on main 87e32b6b as recorded in reports/90021-pin-scope.md. 623b932007 is the same commit message replayed onto later main 657550716f. Product diff on connection-scoped.ts + layout.ts between the two SHAs is empty. Eval known_good is the later replay SHA because that is the worktree HEAD used for historical validation."
+      "remote": "https://github.com/NousResearch/hermes-agent.git",
+      "provenance": "3582a128c7 is the original pin-scope fix on main 87e32b6b. 623b932007 is the same commit message replayed onto later main 657550716f. Product diff on connection-scoped.ts + layout.ts between the two SHAs is empty. Eval known_good is the later replay SHA used for historical validation."
     }
   },
   "aliases_do_not_use_in_results": {

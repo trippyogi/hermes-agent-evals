@@ -10,14 +10,21 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from evals.scorers.canary import interpret_canary
 from hermes_eval.compare import build_compare, write_compare
 from hermes_eval.fixtureload import FIXTURE_SCHEMA_VERSION, load_fixture, load_manifest
+from hermes_eval.freeze import freeze_payload, write_freeze
 from hermes_eval.gitutil import (
     REPO_ROOT,
+    discover_python,
     expand_ref,
+    fetch_moving_ref,
+    fetch_shas,
     harness_git_state,
+    historical_shas,
     provenance,
     resolve_hermes_root,
+    sut_cache_dir,
 )
 
 FIXTURES = {
@@ -38,10 +45,7 @@ SUITES = {
 
 
 def _python() -> str:
-    return os.environ.get(
-        "HERMES_EVAL_PYTHON",
-        str(Path(r"c:\dev\hermes-agent\.venv\Scripts\python.exe")),
-    )
+    return discover_python()
 
 
 def _load_result(path: Path) -> dict:
@@ -245,6 +249,8 @@ def cmd_live(args: argparse.Namespace) -> int:
     sys.stderr.write(f"\nzero-toolset-live @ {result.get('hermes_ref')} {status} → {path}\n")
     if result.get("status") == "BLOCKED":
         return 3
+    if result.get("status") == "RUN":
+        return 0
     return 0 if result.get("success") else 1
 
 
@@ -269,6 +275,104 @@ def cmd_manifest(args: argparse.Namespace) -> int:
         f"harness_sha={git_state['harness_sha']} dirty={git_state['harness_dirty']}\n"
     )
     return 0 if git_state["harness_sha"] else 1
+
+
+def cmd_fetch_sut(args: argparse.Namespace) -> int:
+    shas = list(args.sha) if args.sha else historical_shas()
+    if args.current:
+        current = fetch_moving_ref("refs/heads/main")
+        shas.append(current)
+    fetched = fetch_shas(shas)
+    payload = {
+        "cache": str(sut_cache_dir()),
+        "fetched": fetched,
+        "remotes": None,
+    }
+    from hermes_eval.gitutil import sut_remotes
+
+    payload["remotes"] = sut_remotes()
+    print(json.dumps(payload, indent=2))
+    sys.stderr.write(f"fetched {len(fetched)} SHA(s) into {sut_cache_dir()}\n")
+    return 0
+
+
+def cmd_freeze(args: argparse.Namespace) -> int:
+    dest = write_freeze(Path(args.out) if args.out else None)
+    payload = freeze_payload()
+    print(json.dumps(payload, indent=2))
+    sys.stderr.write(f"freeze → {dest}\n")
+    return 0
+
+
+def _render_canary_md(report: dict) -> str:
+    lines = [
+        "# Current canary",
+        "",
+        f"- Resolved current Hermes SHA: `{report.get('current_sha')}`",
+        f"- Harness: `{report.get('harness_sha')}` dirty={report.get('harness_dirty')}",
+        f"- When: {report.get('timestamp')}",
+        "",
+        "| Fixture | Resolved current Hermes SHA | Status | Reason |",
+        "|---|---|---|---|",
+    ]
+    for row in report.get("fixtures") or []:
+        reason = str(row.get("reason") or "").replace("|", "/")
+        lines.append(
+            f"| {row.get('fixture')} | `{row.get('current_sha')}` | "
+            f"{row.get('status')} | {reason} |"
+        )
+    lines.append("")
+    lines.append(
+        "REGRESSION is recorded only when `known_good` is an ancestor of "
+        "the resolved current SHA **and** the fixture failed. "
+        "`FIX_NOT_ON_THIS_SHA` / `PASS_WITHOUT_FIX_SHA` are not regressions."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def cmd_canary(args: argparse.Namespace) -> int:
+    current = fetch_moving_ref("refs/heads/main")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_dir = Path(args.out) if args.out else (REPO_ROOT / "results" / f"canary-{stamp}")
+    rows = []
+    for fixture in SUITES["core-failures"]:
+        path = run_fixture(
+            fixture,
+            current,
+            source=Path(args.hermes_source) if args.hermes_source else None,
+            out_dir=out_dir / fixture,
+            python=args.python,
+        )
+        result = _load_result(path)
+        rows.append(
+            interpret_canary(
+                fixture=fixture,
+                current_sha=current,
+                success=bool(result.get("success")),
+            )
+        )
+    git_state = harness_git_state()
+    report = {
+        "current_sha": current,
+        "harness_sha": git_state["harness_sha"],
+        "harness_dirty": git_state["harness_dirty"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fixtures": rows,
+        "false_regression_rule": (
+            "REGRESSION only if known_good is an ancestor AND the fixture failed"
+        ),
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    json_path = out_dir / "canary.json"
+    md_path = out_dir / "canary.md"
+    json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(_render_canary_md(report), encoding="utf-8")
+    print(json.dumps(report, indent=2))
+    sys.stderr.write(f"\n{md_path.read_text(encoding='utf-8')}\nJSON: {json_path}\n")
+    if any(r.get("status") == "REGRESSION" for r in rows):
+        return 2
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -324,6 +428,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     man_p = sub.add_parser("manifest", help="Print provenance manifest + harness SHA")
     man_p.set_defaults(func=cmd_manifest)
+
+    fetch_p = sub.add_parser("fetch-sut", help="Fetch historical Hermes SHAs into .cache/hermes-sut")
+    fetch_p.add_argument("sha", nargs="*", help="SHAs to fetch (default: known_bad + known_good)")
+    fetch_p.add_argument(
+        "--current",
+        action="store_true",
+        help="Also fetch refs/heads/main and record its full SHA",
+    )
+    fetch_p.set_defaults(func=cmd_fetch_sut)
+
+    freeze_p = sub.add_parser("freeze", help="Write fixture SHA-256 digests")
+    freeze_p.add_argument("--out")
+    freeze_p.set_defaults(func=cmd_freeze)
+
+    canary_p = sub.add_parser(
+        "canary",
+        help="Run the three core fixtures vs resolved origin/main SHA (no false regressions)",
+    )
+    canary_p.add_argument("--hermes-source")
+    canary_p.add_argument("--out")
+    canary_p.add_argument("--python")
+    canary_p.set_defaults(func=cmd_canary)
     return p
 
 

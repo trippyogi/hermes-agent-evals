@@ -10,8 +10,8 @@ known_bad: "13ce0c5c675e843af70d19c9e5144249cd51c8d1"
 known_good: "ed5b9152ce975ada68f0b53a21c4806f29ed0852"
 evidence:
   - NousResearch/hermes-agent#89050
-  - c:/dev/hermes-agent/reports/salvage-empty-toolsets.md
-  - c:/dev/hermes-toolperf-evals/corpus/fixtures/empty-toolset
+  - "upstream report: reports/salvage-empty-toolsets.md"
+  - "toolperf corpus class: empty-toolset"
 honesty:
   production_replay: false
   note: "Historical gate uses a deterministic fake model. It is an agent_behavior fixture, not a production_replay. The live weak-model arm is zero-toolset-live."

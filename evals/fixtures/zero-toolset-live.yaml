@@ -24,6 +24,12 @@ fault:
 expect:
   report_rates: true
   do_not_invent_numbers_when_blocked: true
+  report_separately:
+    - control_task_success_rate
+    - fault_task_success_rate
+    - fault_textual_pseudo_tool_call_rate
+    - fault_diagnostic_rate
 notes:
   - "Not part of the historical 3/3 gate."
   - "Never reads ~/.hermes. BLOCKED if HERMES_EVAL_* credentials are absent."
+  - "Known-good makes zero tools loud; it does not restore tools. Fault-arm task success should stay ~0 and is not evidence the salvage commit fixed the task."

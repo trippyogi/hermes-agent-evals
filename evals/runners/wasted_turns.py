@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from collections import Counter
 from pathlib import Path
@@ -232,6 +233,71 @@ def detect_candidates(payload: Any, source: str) -> list[dict]:
     return candidates
 
 
+def resolve_atof(scan_path: Path | None = None) -> tuple[str, str | None]:
+    """REAL_ATOF_DATA is available only from HERMES_EVAL_ATOF_DIR or an ATOF jsonl.
+
+    Never reads ~/.hermes. Scrubbed reconstruction is not ATOF.
+    """
+    env = (os.environ.get("HERMES_EVAL_ATOF_DIR") or "").strip()
+    if env:
+        path = Path(env)
+        if path.is_dir() or path.is_file():
+            return "available", str(path)
+        return "BLOCKED", f"HERMES_EVAL_ATOF_DIR set but missing: {path}"
+    if scan_path is not None:
+        name = scan_path.name.lower()
+        if "atof" in name and scan_path.exists():
+            return "available", str(scan_path)
+    return "BLOCKED", "HERMES_EVAL_ATOF_DIR unset; no ATOF jsonl provided"
+
+
+def collapse_episodes(candidates: list[dict]) -> list[dict]:
+    """Collapse detector hits that share (source, event index, tool).
+
+    W1+W3 on the same retry is one human decision, not two independent rows.
+    """
+    groups: dict[tuple, list[dict]] = {}
+    order: list[tuple] = []
+    for hit in candidates:
+        key = (hit.get("source"), hit.get("index"), hit.get("tool"))
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(hit)
+    episodes = []
+    for key in order:
+        hits = groups[key]
+        labels = []
+        for hit in hits:
+            label = hit.get("w_label")
+            if label and label not in labels:
+                labels.append(label)
+        patterns = []
+        for hit in hits:
+            pattern = hit.get("pattern")
+            if pattern and pattern not in patterns:
+                patterns.append(pattern)
+        first = hits[0]
+        episodes.append(
+            {
+                "source": first.get("source"),
+                "index": first.get("index"),
+                "tool": first.get("tool"),
+                "w_labels": labels,
+                "patterns": patterns,
+                "hit_count": len(hits),
+                "confidence": first.get("confidence"),
+                "state_changed": first.get("state_changed"),
+                "evidence": first.get("evidence"),
+                "previous_result_hash": first.get("previous_result_hash"),
+                "human_verdict": None,
+                "human_notes": None,
+                "label": "unlabeled",
+            }
+        )
+    return episodes
+
+
 def scan_path(path: Path) -> dict:
     candidates: list[dict] = []
     files = 0
@@ -239,6 +305,15 @@ def scan_path(path: Path) -> dict:
         targets = [path]
     else:
         targets = list(path.rglob("*.json")) + list(path.rglob("*.jsonl"))
+    atof_status, atof_note = resolve_atof(path)
+    if atof_status == "available" and atof_note:
+        extra = Path(atof_note)
+        if extra.is_file() and extra not in targets:
+            targets.append(extra)
+        elif extra.is_dir():
+            for found in list(extra.rglob("*.json")) + list(extra.rglob("*.jsonl")):
+                if found not in targets:
+                    targets.append(found)
     for file in targets:
         files += 1
         try:
@@ -261,35 +336,59 @@ def scan_path(path: Path) -> dict:
             except json.JSONDecodeError:
                 continue
             candidates.extend(detect_candidates(payload, str(file)))
+    episodes = collapse_episodes(candidates)
     counts = Counter(c["w_label"] for c in candidates)
+    episode_label_counts = Counter(label for ep in episodes for label in ep.get("w_labels") or [])
+    overlaps = sum(1 for ep in episodes if len(ep.get("w_labels") or []) > 1)
     return {
         "files_scanned": files,
+        "detector_hits": len(candidates),
         "candidate_count": len(candidates),
+        "episode_count": len(episodes),
+        "overlaps_collapsed": overlaps,
         "by_w_label": dict(counts),
+        "by_w_label_episodes": dict(episode_label_counts),
+        "REAL_ATOF_DATA": atof_status,
+        "REAL_ATOF_DATA_note": atof_note,
+        "corpus": (
+            "atof" if atof_status == "available" else "scrubbed_reconstruction"
+        ),
         "candidates": candidates,
-        "note": "Candidates only. Do not treat detections as objective waste. human_verdict is blank.",
+        "episodes": episodes,
+        "note": (
+            "Detector hits are not independent labels. Human labeling is on "
+            "episodes (shared source, event index, tool). Do not auto-score. "
+            f"REAL_ATOF_DATA={atof_status}."
+        ),
     }
 
 
 def render_label_sheet(scan: dict) -> str:
     lines = [
-        "# Wasted-turn labeling sample",
+        "# Wasted-turn labeling sample (episodes)",
         "",
         "Do **not** train an automatic score from this sheet.",
+        "Label **episodes**, not raw detector hits. W1+W3 on the same retry is one decision.",
         "Fill `HUMAN_VERDICT` with waste / not-waste / unsure.",
         "",
-        f"Candidates: {scan.get('candidate_count')}",
-        f"By label: {scan.get('by_w_label')}",
+        f"REAL_ATOF_DATA: {scan.get('REAL_ATOF_DATA')}",
+        f"Corpus: {scan.get('corpus')}",
+        f"Detector hits: {scan.get('detector_hits')}",
+        f"Unique episodes: {scan.get('episode_count')}",
+        f"Overlaps collapsed: {scan.get('overlaps_collapsed')}",
+        f"Hit labels: {scan.get('by_w_label')}",
         "",
-        "| # | W | tool | source | state_changed | evidence | HUMAN_VERDICT |",
-        "|---|---|---|---|---|---|---|",
+        "| # | w_labels | tool | source | index | hits | state_changed | evidence | HUMAN_VERDICT |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
-    for i, c in enumerate(scan.get("candidates") or [], 1):
-        evidence = str(c.get("evidence") or "").replace("|", "/")
-        source = str(c.get("source") or "").replace("|", "/")
+    for i, ep in enumerate(scan.get("episodes") or [], 1):
+        evidence = str(ep.get("evidence") or "").replace("|", "/")
+        source = str(ep.get("source") or "").replace("|", "/")
+        labels = ",".join(ep.get("w_labels") or [])
         lines.append(
-            f"| {i} | {c.get('w_label')} | `{c.get('tool') or ''}` | `{source[-60:]}` | "
-            f"{c.get('state_changed')} | {evidence} | |"
+            f"| {i} | {labels} | `{ep.get('tool') or ''}` | `{source[-60:]}` | "
+            f"{ep.get('index')} | {ep.get('hit_count')} | {ep.get('state_changed')} | "
+            f"{evidence} | |"
         )
     lines.append("")
     return "\n".join(lines) + "\n"

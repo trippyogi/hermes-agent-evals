@@ -10,6 +10,10 @@ It answers:
 Historical validation is the gate: a fixture is useful only if it can
 separate a known-bad Hermes SHA from a known-good/fixed SHA.
 
+v0.2 proves **portability** (clean clone + GitHub fetch), **measurement
+validity** (ancestry-aware canary, accumulating prefix probe, episode-level
+waste labels), and **longitudinal usefulness** before adding more fixtures.
+
 ## Why this exists
 
 NousResearch/hermes-agent has unit tests and an in-tree `scripts/toolperf_abeval/`
@@ -33,15 +37,15 @@ It lives **outside** hermes-agent on purpose.
 
 ## Relationship to hermes-toolperf-evals
 
-`C:\dev\hermes-toolperf-evals` stays the home of the 9-trap A/B toolperf
-battery. This repo is the dedicated research tree for the
-agent-behavior / state-recovery / instrumentation split, with a compare
-runner and a historical-validation gate.
+`hermes-toolperf-evals` stays the home of the 9-trap A/B toolperf battery.
+This repo is the dedicated research tree for the agent-behavior /
+state-recovery / instrumentation split, with a compare runner and a
+historical-validation gate.
 
 ## Upstream policy
 
-- **No GitHub writes during this task.** No PRs, no issue comments, no
-  push to NousResearch/hermes-toolperf-evals (READ-only clone).
+- **No GitHub writes to NousResearch/hermes-agent.** Hermes is the system
+  under test. This harness is research-only.
 - A fixture becomes a possible Hermes upstream contribution only when it
   catches a real regression, separates known-good from known-bad, the
   invariant is long-term, maintainers would run it permanently, and CI
@@ -61,28 +65,67 @@ hermes_eval/         CLI
 reports/evals/       architecture, corpus, taxonomy, results
 ```
 
-## How to run
+## How to run (portable)
 
 Use an isolated temp `HERMES_HOME`. The harness never reads `~/.hermes`.
 
+From a clone of this repo (any machine with git + a Python that can import
+Hermes deps, or `HERMES_EVAL_PYTHON` pointing at such an interpreter):
+
 ```bat
-cd C:\dev\hermes-agent-evals
-set PYTHONPATH=C:\dev\hermes-agent-evals
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval manifest
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval compare --historical --suite core-failures
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval run --fixture delegate-fallback-runtime --ref c6a2fb48af74e3c795015aeb6e615733a9b5bac5
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 5
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
-c:\dev\hermes-agent\.venv\Scripts\python.exe -m hermes_eval scan-waste evals/fixtures/_waste_samples --out results/wasted-turn-scan.json --label-sheet
+git clone https://github.com/trippyogi/hermes-agent-evals.git
+cd hermes-agent-evals
+set PYTHONPATH=%CD%
+rem Optional: reuse an existing Hermes venv. Isolation is the SUT checkout,
+rem not a second venv. PYTHONPATH must point at the fetched worktree.
+rem set HERMES_EVAL_PYTHON=C:\path\to\hermes\.venv\Scripts\python.exe
+
+python -m hermes_eval fetch-sut
+python -m hermes_eval freeze
+python -m hermes_eval compare --historical --suite core-failures
+python -m hermes_eval canary
+python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
+python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 5
+python -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
+python -m hermes_eval scan-waste evals/fixtures/_waste_samples --out results/wasted-turn-scan.json --label-sheet
 ```
+
+Unix-style equivalent:
+
+```sh
+git clone https://github.com/trippyogi/hermes-agent-evals.git
+cd hermes-agent-evals
+export PYTHONPATH="$PWD"
+python -m hermes_eval fetch-sut
+python -m hermes_eval compare --historical --suite core-failures
+```
+
+`fetch-sut` pulls historical SHAs from GitHub into `.cache/hermes-sut` and
+materializes detached checkouts under `.worktrees/<sha12>`. Result JSON
+records that clone-local `hermes_root`. Operator filesystem paths are not
+required. Replay provenance stays in `evals/provenance/manifest.json`.
 
 `--historical` uses each fixture YAML’s own known-bad / known-good pair
 (required for the gate: the three fixes live on different SHAs).
 
+`canary` fetches `refs/heads/main`, stores the **full SHA** (never the
+branch label), runs the three fixtures, and interprets with ancestry-aware
+statuses: `PASS` | `REGRESSION` | `FIX_NOT_ON_THIS_SHA` |
+`PASS_WITHOUT_FIX_SHA` | `INDETERMINATE`. `REGRESSION` is recorded only
+when `known_good` is an ancestor of that SHA **and** the fixture failed.
+
 CLI aliases exist only as input sugar and expand through
 `evals/provenance/manifest.json`. **Results always store full SHAs.**
 Do not record `origin/main` or branch names in artifacts.
+
+Optional env:
+
+- `HERMES_EVAL_PYTHON` — interpreter that can import Hermes (else `sys.executable`)
+- `HERMES_EVAL_SUT_REMOTE` — override fetch remote
+- `HERMES_EVAL_SUT_CACHE` — override cache dir
+- `HERMES_EVAL_ALLOW_FETCH=0` — disable network fetch
+- `HERMES_EVAL_SUT_SOURCES` — extra local clones (never required)
+- `HERMES_EVAL_ATOF_DIR` — real ATOF traces for waste labeling
 
 ## Pinned Hermes SHAs
 
@@ -106,7 +149,8 @@ See `evals/provenance/manifest.json`. Summary:
 - `agent_behavior` — model + environment; control vs fault
 - `instrumentation` — measurement probe, not a pass/fail SUT by itself
 
-Honest labels for the current corpus are in each fixture YAML.
+None of the historical three is `production_replay`. Honest labels are in
+each fixture YAML.
 
 ## Result format
 
@@ -142,4 +186,9 @@ Copy `.env.example` values into the **process environment** only:
 - optional `HERMES_EVAL_BASE_URL`, `HERMES_EVAL_REPS`
 
 If those are absent the live runner records `status=BLOCKED` and does
-not invent rates.
+not invent rates. Known-good makes zero tools **loud**; it does **not**
+restore tools. Report `control_task_success_rate`,
+`fault_task_success_rate` (expect ~0),
+`fault_textual_pseudo_tool_call_rate`, and `fault_diagnostic_rate`
+separately. Do not treat fault-arm task success as evidence the salvage
+commit fixed the task.

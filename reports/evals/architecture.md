@@ -20,9 +20,12 @@ Do not launch against the user's default `~/.hermes`.
 ## How do we pin a Hermes commit/ref?
 
 `--ref` is a SHA, alias, or checkout path. `hermes_eval.gitutil.resolve_hermes_root`
-looks up a local object and either reuses a known worktree or
-`git worktree add --detach` under `.worktrees/<sha12>`. No fetch, no GitHub
-write. The result JSON stores the full SHA.
+fetches historical SHAs from the remotes in `evals/provenance/manifest.json`
+(GitHub: NousResearch/hermes-agent, fallback trippyogi/hermes-agent) into
+`.cache/hermes-sut` (bare), then `git worktree add --detach` under
+`.worktrees/<sha12>`. Optional `--hermes-source` / `HERMES_EVAL_SUT_SOURCES`
+still work. No GitHub **writes**. The result JSON stores the full SHA and
+the clone-local `hermes_root`, never a workstation `C:\dev\hermes-agent-wt-*`.
 
 ## How do we isolate HERMES_HOME?
 

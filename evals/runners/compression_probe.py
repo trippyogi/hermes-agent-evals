@@ -15,7 +15,7 @@ if str(REPO) not in sys.path:
 
 from hermes_eval.isolate import isolated_env, write_isolated_home
 from hermes_eval.redact import redact_obj
-from hermes_eval.wirewrap import hash_request, prefix_churn, sha16
+from hermes_eval.wirewrap import hash_request, prefix_churn, sha16, shared_prefix_stats
 
 TOOL_DEFS = [
     {
@@ -68,6 +68,8 @@ def _make_agent(hermes_root: Path):
     agent.save_trajectories = False
     agent._use_prompt_caching = False
     agent._cached_system_prompt = "You are Hermes eval. Tools: write_file."
+    if getattr(agent, "tools", None) in (None, []):
+        agent.tools = TOOL_DEFS
     return agent
 
 
@@ -127,72 +129,92 @@ def _wrap_agent(agent, records: list[dict]):
     return orig_build, orig_call, orig_compress
 
 
-def _drive_turns(agent, n: int, prefix: str) -> list[str]:
-    notes = []
-    for i in range(n):
+def _outgoing_messages(kwargs: dict, fallback: list) -> list:
+    messages = kwargs.get("messages")
+    if isinstance(messages, list) and messages:
+        return messages
+    incoming = kwargs.get("input")
+    if isinstance(incoming, list) and incoming:
+        return incoming
+    return fallback
+
+
+def _turn_row(turn: str, kwargs: dict, messages: list, t1_messages: list | None, compression: bool) -> dict:
+    req = hash_request(kwargs)
+    outgoing = _outgoing_messages(kwargs, messages)
+    stats = shared_prefix_stats(t1_messages or outgoing, outgoing)
+    return {
+        "turn": turn,
+        "system_hash": req.get("system_prompt_hash"),
+        "tools_hash": req.get("tool_schema_hash"),
+        "message_count": req.get("message_count") or len(outgoing),
+        "shared_prefix_count": stats["shared_prefix_count"],
+        "prefix_retention_ratio": stats["prefix_retention_ratio"],
+        "compression_event": compression,
+        "first_divergence": stats["first_divergence"],
+        "request": req,
+    }
+
+
+def _drive_longitudinal(agent, records: list[dict]) -> tuple[list[str], list[dict]]:
+    """Accumulate one session: T1–T4 suffix growth, T5 force compress()."""
+    notes: list[str] = []
+    turns: list[dict] = []
+    system = agent._cached_system_prompt or "You are Hermes eval. Tools: write_file."
+    messages: list[dict] = [{"role": "system", "content": system}]
+    t1_messages: list | None = None
+
+    for t in range(1, 5):
+        messages.append({"role": "user", "content": f"longitudinal suffix turn {t}: ping {t}"})
         try:
-            with patch.object(agent, "_persist_session"), patch.object(
-                agent, "_save_trajectory", create=True
-            ), patch.object(agent, "_cleanup_task_resources", create=True):
-                agent.run_conversation(f"{prefix} turn {i+1}: ping")
-            notes.append(f"run_conversation turn {i+1} ok")
+            kwargs = agent._build_api_kwargs(list(messages))
         except Exception as exc:
-            notes.append(f"run_conversation turn {i+1} failed: {type(exc).__name__}")
-            # Fall back: still hash the payload Hermes would send.
-            history = [
-                {"role": "system", "content": agent._cached_system_prompt},
-                {"role": "user", "content": f"{prefix} turn 1: ping"},
-            ]
-            for j in range(i):
-                history.append({"role": "assistant", "content": "ok"})
-                history.append({"role": "user", "content": f"{prefix} turn {j+2}: ping"})
-            try:
-                agent._build_api_kwargs(history)
-                notes.append(f"fallback _build_api_kwargs turn {i+1} hashed")
-            except Exception as exc2:
-                notes.append(f"fallback hash failed: {type(exc2).__name__}")
-    return notes
+            notes.append(f"T{t} _build_api_kwargs failed: {type(exc).__name__}")
+            kwargs = {"messages": list(messages), "tools": getattr(agent, "tools", TOOL_DEFS)}
+        if t == 1:
+            t1_messages = list(_outgoing_messages(kwargs, messages))
+        row = _turn_row(f"T{t}", kwargs, messages, t1_messages, compression=False)
+        records.append({"kind": "longitudinal_turn", "compression_event": False, **row})
+        turns.append(row)
+        try:
+            agent._interruptible_api_call(kwargs)
+            notes.append(f"T{t} interruptible_api_call ok; messages={row['message_count']}")
+        except Exception as exc:
+            notes.append(f"T{t} interruptible_api_call: {type(exc).__name__} (hashed anyway)")
+        messages.append({"role": "assistant", "content": "ok"})
 
-
-def _compression_boundary(agent, records: list[dict]) -> list[str]:
-    notes = []
-    compressor = getattr(agent, "context_compressor", None)
-    bulky = [{"role": "system", "content": agent._cached_system_prompt or "sys"}]
-    for i in range(12):
+    bulky = list(messages)
+    for i in range(8):
         bulky.append({"role": "user", "content": f"history {i} " + ("x" * 80)})
         bulky.append({"role": "assistant", "content": f"ack {i}"})
-    bulky.append({"role": "user", "content": "suffix-only after history"})
+    bulky.append({"role": "user", "content": "T5 force-compress suffix"})
+    compressor = getattr(agent, "context_compressor", None)
+    compressed = bulky
+    saw = False
     if compressor is None:
-        notes.append("no context_compressor on agent")
+        notes.append("T5 no context_compressor; hashing bulky payload")
+    else:
         try:
-            agent._build_api_kwargs(bulky)
-            notes.append("hashed bulky payload without compress()")
+            compressed = compressor.compress(bulky, current_tokens=50_000, force=True)
+            saw = True
+            notes.append(
+                f"T5 compress() returned "
+                f"{len(compressed) if isinstance(compressed, list) else type(compressed).__name__}"
+            )
         except Exception as exc:
-            notes.append(f"bulky hash failed: {type(exc).__name__}")
-        return notes
+            notes.append(f"T5 compress() failed: {type(exc).__name__}; hashing bulky payload")
+            compressed = bulky
+    payload = compressed if isinstance(compressed, list) else bulky
     try:
-        compressed = compressor.compress(bulky, current_tokens=50_000, force=True)
-        notes.append(
-            f"compress() returned {len(compressed) if isinstance(compressed, list) else type(compressed).__name__}"
-        )
-        agent._build_api_kwargs(compressed if isinstance(compressed, list) else bulky)
-        records.append(
-            {
-                "kind": "post_compress_build",
-                "compression_event": True,
-                "request": hash_request(
-                    {"messages": compressed if isinstance(compressed, list) else bulky}
-                ),
-            }
-        )
+        kwargs = agent._build_api_kwargs(payload)
     except Exception as exc:
-        notes.append(f"compress() failed: {type(exc).__name__}")
-        try:
-            agent._build_api_kwargs(bulky)
-            notes.append("hashed bulky payload after compress failure")
-        except Exception as exc2:
-            notes.append(f"bulky hash failed: {type(exc2).__name__}")
-    return notes
+        notes.append(f"T5 _build_api_kwargs failed: {type(exc).__name__}")
+        kwargs = {"messages": payload, "tools": getattr(agent, "tools", TOOL_DEFS)}
+    row = _turn_row("T5", kwargs, payload, t1_messages, compression=True)
+    row["compress_invoked"] = saw
+    records.append({"kind": "longitudinal_turn", "compression_event": True, **row})
+    turns.append(row)
+    return notes, turns
 
 
 def run(hermes_root: Path | None, hermes_sha: str | None, out_dir: Path) -> dict:
@@ -200,12 +222,13 @@ def run(hermes_root: Path | None, hermes_sha: str | None, out_dir: Path) -> dict
     notes: list[str] = []
     records: list[dict] = []
     home = write_isolated_home()
-    scenarios = {"multi_turn": None, "suffix_growth": None, "compression_boundary": None}
+    turns: list[dict] = []
+    scenarios = {"longitudinal": None, "t1_t4_suffix_growth": None, "t5_force_compress": None}
 
     if hermes_root is None:
         notes.append("no hermes root")
         duration_ms = (time.perf_counter() - started) * 1000
-        return _result(hermes_sha, notes, records, scenarios, duration_ms, success=False)
+        return _result(hermes_sha, notes, records, scenarios, duration_ms, success=False, turns=turns)
 
     sys.path.insert(0, str(hermes_root))
     with isolated_env(home):
@@ -218,44 +241,57 @@ def run(hermes_root: Path | None, hermes_sha: str | None, out_dir: Path) -> dict
             try:
                 agent = _make_agent(hermes_root)
                 _wrap_agent(agent, records)
-                notes.extend(_drive_turns(agent, 3, "stable"))
-                scenarios["multi_turn"] = prefix_churn(
-                    [r for r in records if r.get("kind") in {"interruptible_api_call", "build_api_kwargs"}]
+                extra, turns = _drive_longitudinal(agent, records)
+                notes.extend(extra)
+                scenarios["longitudinal"] = turns
+                scenarios["t1_t4_suffix_growth"] = prefix_churn(
+                    [r for r in records if r.get("turn") in {"T1", "T2", "T3", "T4"}]
                 )
-                before_suffix = len(records)
-                notes.extend(_drive_turns(agent, 1, "suffix-only"))
-                scenarios["suffix_growth"] = prefix_churn(records[before_suffix:])
-                before_compress = len(records)
-                notes.extend(_compression_boundary(agent, records))
-                scenarios["compression_boundary"] = {
-                    "records_added": len(records) - before_compress,
-                    "saw_compress": any(r.get("kind") == "compress" for r in records[before_compress:]),
-                }
+                scenarios["t5_force_compress"] = next(
+                    (r for r in turns if r.get("turn") == "T5"),
+                    None,
+                )
             except Exception as exc:
                 notes.append(f"agent probe failed: {type(exc).__name__}: {exc}")
 
-    measurable = any(r.get("request", {}).get("system_prompt_hash") for r in records)
+    measurable = any(r.get("request", {}).get("system_prompt_hash") for r in records) or any(
+        t.get("system_hash") for t in turns
+    )
     churn = prefix_churn(records)
-    success = measurable
+    success = measurable and len(turns) == 5
     duration_ms = (time.perf_counter() - started) * 1000
-    return _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn)
+    return _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn, turns)
 
 
-def _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn=None):
+def _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn=None, turns=None):
     not_obs = []
     if not any(r.get("input_tokens") for r in records):
         not_obs.append("provider_native_token_counts")
     if not any(r.get("cache_read_tokens") for r in records if r.get("cache_read_tokens")):
         not_obs.append("provider_cache_read")
+    table = []
+    for row in turns or []:
+        table.append(
+            {
+                "turn": row.get("turn"),
+                "system_hash": row.get("system_hash"),
+                "tools_hash": row.get("tools_hash"),
+                "message_count": row.get("message_count"),
+                "shared_prefix_count": row.get("shared_prefix_count"),
+                "prefix_retention_ratio": row.get("prefix_retention_ratio"),
+                "compression_event": row.get("compression_event"),
+                "first_divergence": row.get("first_divergence"),
+            }
+        )
     return redact_obj(
         {
             "fixture": "compression-prefix-probe",
-            "fixture_version": 2,
+            "fixture_version": 3,
             "hermes_ref": hermes_sha,
             "model": "eval-mock",
             "provider": "synthetic-wrap",
             "success": success,
-            "turns": sum(1 for r in records if r.get("kind") == "interruptible_api_call") or None,
+            "turns": len(table) or None,
             "tool_calls": 0,
             "tool_calls_success": 0,
             "tool_calls_failed": 0,
@@ -274,6 +310,8 @@ def _result(hermes_sha, notes, records, scenarios, duration_ms, success, churn=N
                 "scenarios": scenarios,
                 "prefix_churn": churn,
                 "measurable_on_wire_wrap": success,
+                "longitudinal_turns": table,
+                "session_model": "accumulating T1-T4 suffix growth; T5 force compress()",
             },
         }
     )

@@ -99,6 +99,41 @@ def wrap_callable(fn: Callable, records: list[dict], kind: str) -> Callable:
     return wrapped
 
 
+def message_fingerprint(msg: Any) -> str:
+    return sha16(_message_role_content(msg))
+
+
+def shared_prefix_stats(base_messages: list[Any], other_messages: list[Any]) -> dict[str, Any]:
+    """Compare ``other`` against T1's outgoing messages.
+
+    ``shared_prefix_count`` is the run of leading messages whose role+content
+    hashes match T1. ``prefix_retention_ratio`` is that count / len(T1).
+    ``first_divergence`` is the first index that differs, or None if other
+    is an exact prefix-preserving extension (or equal).
+    """
+    base = list(base_messages or [])
+    other = list(other_messages or [])
+    shared = 0
+    first_div = None
+    limit = min(len(base), len(other))
+    for i in range(limit):
+        if message_fingerprint(base[i]) == message_fingerprint(other[i]):
+            shared += 1
+            continue
+        first_div = i
+        break
+    if first_div is None and len(other) < len(base):
+        first_div = len(other)
+    ratio = (shared / len(base)) if base else None
+    return {
+        "shared_prefix_count": shared,
+        "prefix_retention_ratio": round(ratio, 4) if ratio is not None else None,
+        "first_divergence": first_div,
+        "base_message_count": len(base),
+        "other_message_count": len(other),
+    }
+
+
 def prefix_churn(records: list[dict]) -> dict[str, Any]:
     """Flag unexpected prefix changes across LLM calls with no compression."""
     llm = [r for r in records if r.get("kind") in {"interruptible_api_call", "build_api_kwargs", "call_llm"}]
