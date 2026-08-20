@@ -1,0 +1,33 @@
+{
+  "suite": "core-failures",
+  "note": "Frozen split outcomes from the v0.1 historical gate. Revalidation must match these booleans, not wall-clock.",
+  "fixtures": [
+    {
+      "fixture": "zero-toolset",
+      "known_bad": "13ce0c5c675e843af70d19c9e5144249cd51c8d1",
+      "known_good": "ed5b9152ce975ada68f0b53a21c4806f29ed0852",
+      "baseline_success": false,
+      "candidate_success": true,
+      "direction": "candidate_fixed",
+      "distinguished": true
+    },
+    {
+      "fixture": "delegate-fallback-runtime",
+      "known_bad": "13ce0c5c675e843af70d19c9e5144249cd51c8d1",
+      "known_good": "c6a2fb48af74e3c795015aeb6e615733a9b5bac5",
+      "baseline_success": false,
+      "candidate_success": true,
+      "direction": "candidate_fixed",
+      "distinguished": true
+    },
+    {
+      "fixture": "stale-pin-rescope",
+      "known_bad": "13ce0c5c675e843af70d19c9e5144249cd51c8d1",
+      "known_good": "623b93200779d31d416eb2c5f9116106de6f5adb",
+      "baseline_success": false,
+      "candidate_success": true,
+      "direction": "candidate_fixed",
+      "distinguished": true
+    }
+  ]
+}

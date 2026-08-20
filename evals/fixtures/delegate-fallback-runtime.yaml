@@ -1,0 +1,59 @@
+id: delegate-fallback-runtime
+version: 2
+schema_version: 2
+category: state-recovery
+classification:
+  - fault_injected_invariant
+tier: 1
+title: Delegation runtime mismatch after provider fallback
+known_bad: "13ce0c5c675e843af70d19c9e5144249cd51c8d1"
+known_good: "c6a2fb48af74e3c795015aeb6e615733a9b5bac5"
+evidence:
+  - NousResearch/hermes-agent#90009
+  - NousResearch/hermes-agent#90209
+  - c:/dev/hermes-agent-wt-90009-author-fix
+honesty:
+  production_replay: false
+  fault_injected: true
+  required_disclaimer: >
+    The #90009 split-brain state is FAULT-INJECTED. A clean
+    _try_activate_fallback on 13ce0c5c675e843af70d19c9e5144249cd51c8d1
+    already rewrites parent surface attrs atomically, so that path does
+    NOT naturally produce the discriminator. After a real fallback
+    activation the fixture writes stale Codex base_url/api_key/_client_kwargs
+    while leaving live _anthropic_* stores, then calls _build_child_agent.
+    Pre-fix inherit reads the stale surface; #90209 reads the paired stores.
+setup:
+  isolated_home: true
+  parent_primary:
+    provider: openai-codex
+    model: gpt-5.6-sol
+    base_url: https://chatgpt.com/backend-api/codex
+    api_mode: codex_responses
+    credential_class: codex-key
+  parent_fallback:
+    provider: anthropic
+    model: claude-sonnet-5
+    base_url: https://api.anthropic.com
+    api_mode: anthropic_messages
+    credential_class: anthropic-key
+task:
+  sequence:
+    - start parent on runtime P
+    - activate fallback to runtime F
+    - inject documented #90009 split-brain (not a production replay)
+    - invoke delegate_task / _build_child_agent
+    - observe child complete runtime identity
+fault:
+  type: injected_split_brain_after_fallback
+  class: split-brain-parent-runtime-after-fallback
+  naturally_occurs_on_known_bad: false
+expect:
+  child_matches_fallback: true
+  runtime_coherent: true
+  auth_failures: 0
+  fail_closed_on_unpaired: true
+notes:
+  - "Synthetic endpoints only. Artifacts store credential class + fingerprint, never raw keys."
+  - "Runnable against pre-fix SHA 13ce0c5c675e843af70d19c9e5144249cd51c8d1, #90209 SHA c6a2fb48af74e3c795015aeb6e615733a9b5bac5, and post-merge later."
+  - "Prior product SHA 465f0d4872cf616ff0a095b7b48b506fd377876a is the same fix on older main; not the eval known_good."

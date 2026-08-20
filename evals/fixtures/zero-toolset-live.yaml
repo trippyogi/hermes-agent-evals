@@ -1,0 +1,29 @@
+id: zero-toolset-live
+version: 1
+schema_version: 2
+category: agent-behavior
+classification:
+  - agent_behavior
+tier: 2
+title: Live weak-model zero-toolset (control vs empty cli toolset)
+known_bad: "13ce0c5c675e843af70d19c9e5144249cd51c8d1"
+known_good: "ed5b9152ce975ada68f0b53a21c4806f29ed0852"
+honesty:
+  production_replay: false
+  live_model: true
+  blocked_without: ["HERMES_EVAL_API_KEY", "HERMES_EVAL_PROVIDER", "HERMES_EVAL_MODEL"]
+setup:
+  isolated_home: true
+  credentials: HERMES_EVAL_star_only
+task:
+  prompt: "Create <workspace>/proof.txt containing the nonce. Use a file tool. Then stop."
+  side_effect: "proof.txt exists and equals the nonce"
+  reps: 5
+fault:
+  class: empty-active-platform-toolset
+expect:
+  report_rates: true
+  do_not_invent_numbers_when_blocked: true
+notes:
+  - "Not part of the historical 3/3 gate."
+  - "Never reads ~/.hermes. BLOCKED if HERMES_EVAL_* credentials are absent."

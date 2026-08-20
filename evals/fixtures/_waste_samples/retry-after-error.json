@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "type": "tool",
+      "name": "terminal",
+      "arguments": {"command": "python script.py"},
+      "status": "error",
+      "content": "python: command not found"
+    },
+    {
+      "type": "tool",
+      "name": "terminal",
+      "arguments": {"command": "python script.py"},
+      "status": "error",
+      "content": "python: command not found"
+    }
+  ]
+}

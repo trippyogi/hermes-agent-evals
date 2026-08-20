@@ -1,0 +1,21 @@
+id: compression-prefix-probe
+version: 2
+schema_version: 2
+category: instrumentation
+classification:
+  - instrumentation
+tier: 1
+title: Wire-prefix hash probe (external wrap, no Hermes core edits)
+known_bad: null
+known_good: null
+honesty:
+  production_replay: false
+  note: "Hashes outgoing request payloads. Does not claim provider cache hits without cache_read_tokens."
+task:
+  sequence:
+    - unchanged multi-turn conversation
+    - suffix-only growth
+    - one compression boundary
+expect:
+  hashes_only: true
+  detect_unexpected_prefix_churn: true

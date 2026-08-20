@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/hermes-agent-evals/fixture.schema.json",
+  "title": "Hermes agent-behavior fixture",
+  "type": "object",
+    "required": ["id", "version", "schema_version", "category", "classification", "tier", "title"],
+    "additionalProperties": true,
+    "properties": {
+    "id": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "classification": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "production_replay",
+          "fault_injected_invariant",
+          "state_transition",
+          "agent_behavior",
+          "instrumentation"
+        ]
+      }
+    },
+    "category": {
+      "type": "string",
+      "enum": ["agent-behavior", "state-recovery", "instrumentation"]
+    },
+    "tier": { "type": "integer", "enum": [1, 2, 3] },
+    "title": { "type": "string" },
+    "known_bad": { "type": "string" },
+    "known_good": { "type": "string" },
+    "setup": { "type": "object" },
+    "task": { "type": "object" },
+    "fault": { "type": "object" },
+    "expect": { "type": "object" }
+  }
+}

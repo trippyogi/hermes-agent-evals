@@ -1,0 +1,6 @@
+id: core-failures
+title: First failure corpus
+fixtures:
+  - zero-toolset
+  - delegate-fallback-runtime
+  - stale-pin-rescope

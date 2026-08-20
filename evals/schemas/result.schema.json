@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/hermes-agent-evals/result.schema.json",
+  "title": "Hermes eval run result",
+  "type": "object",
+    "required": [
+    "fixture",
+    "fixture_version",
+    "fixture_schema_version",
+    "hermes_ref",
+    "harness_sha",
+    "success",
+    "timestamp"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "fixture": { "type": "string" },
+    "fixture_version": { "type": "integer" },
+    "fixture_schema_version": { "type": ["integer", "null"] },
+    "classification": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "hermes_ref": { "type": "string" },
+    "harness_sha": { "type": ["string", "null"] },
+    "harness_dirty": { "type": ["boolean", "null"] },
+    "status": { "type": ["string", "null"] },
+    "model": { "type": ["string", "null"] },
+    "provider": { "type": ["string", "null"] },
+    "success": { "type": "boolean" },
+    "turns": { "type": ["integer", "null"] },
+    "tool_calls": { "type": ["integer", "null"] },
+    "tool_calls_success": { "type": ["integer", "null"] },
+    "tool_calls_failed": { "type": ["integer", "null"] },
+    "invalid_tool_calls": { "type": ["integer", "null"] },
+    "wasted_tool_calls": { "type": ["integer", "null"] },
+    "input_tokens": { "type": ["integer", "null"] },
+    "output_tokens": { "type": ["integer", "null"] },
+    "total_tokens": { "type": ["integer", "null"] },
+    "recovered": { "type": ["boolean", "null"] },
+    "recovery_turns": { "type": ["integer", "null"] },
+    "recovery_tool_calls": { "type": ["integer", "null"] },
+    "cache_prefix_stable": { "type": ["boolean", "null"] },
+    "duration_ms": { "type": ["number", "null"] },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "not_observable": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

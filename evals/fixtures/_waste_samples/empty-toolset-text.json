@@ -1,0 +1,5 @@
+{
+  "fixture_id": "empty-toolset",
+  "transcript": "I'll write the marker file now.\n\n{\"name\": \"write_file\", \"arguments\": {\"path\": \"DONE.txt\", \"content\": \"DONE\"}}",
+  "events": []
+}

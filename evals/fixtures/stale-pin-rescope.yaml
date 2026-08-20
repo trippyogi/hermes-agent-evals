@@ -1,0 +1,39 @@
+id: stale-pin-rescope
+version: 2
+schema_version: 2
+category: state-recovery
+classification:
+  - state_transition
+tier: 1
+title: Stale pin republish after profile rescope
+known_bad: "13ce0c5c675e843af70d19c9e5144249cd51c8d1"
+known_good: "623b93200779d31d416eb2c5f9116106de6f5adb"
+evidence:
+  - NousResearch/hermes-agent#90021
+  - c:/dev/hermes-agent/reports/90021-pin-scope.md
+  - c:/dev/hermes-agent-wt-fix-pin-connection-scope
+honesty:
+  production_replay: false
+  note: "State-transition eval at the store+reconcile boundary. Not an Electron click replay and not a unit call to connectionScopeSuffix()."
+setup:
+  gateway:
+    mode: remote
+    baseUrl: https://gw.example:8443
+  profiles: [default, k9]
+  session: S
+task:
+  sequence:
+    - pin S on profile A
+    - pin S on profile B
+    - unpin S on profile A
+    - switch A → B → A
+fault:
+  class: profile-scoped-pin-copy-reloads-and-patches
+expect:
+  final_unpinned: true
+  unsolicited_pin_patches: 0
+  backend_sessions_pinned: false
+notes:
+  - "State-correctness eval. Does not import and call connectionScopeSuffix() as the assertion."
+  - "Drives pin / unpin / rescope / PATCH at the store+reconcile boundary."
+  - "Prior product SHA 3582a128c767a206713cdd4ae1cc6b770144539b is the same fix on older main; not the eval known_good."

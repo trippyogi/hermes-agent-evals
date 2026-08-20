@@ -1,0 +1,48 @@
+id: zero-toolset
+version: 2
+schema_version: 2
+category: agent-behavior
+classification:
+  - agent_behavior
+tier: 2
+title: Zero toolset → tool-call-as-text
+known_bad: "13ce0c5c675e843af70d19c9e5144249cd51c8d1"
+known_good: "ed5b9152ce975ada68f0b53a21c4806f29ed0852"
+evidence:
+  - NousResearch/hermes-agent#89050
+  - c:/dev/hermes-agent/reports/salvage-empty-toolsets.md
+  - c:/dev/hermes-toolperf-evals/corpus/fixtures/empty-toolset
+honesty:
+  production_replay: false
+  note: "Historical gate uses a deterministic fake model. It is an agent_behavior fixture, not a production_replay. The live weak-model arm is zero-toolset-live."
+setup:
+  isolated_home: true
+  control:
+    platform_toolsets:
+      cli: [hermes-cli]
+  fault:
+    platform_toolsets:
+      cli: []
+      telegram: [hermes-telegram]
+      discord: [hermes-discord]
+task:
+  prompt: "Create <workspace>/proof.txt containing the nonce. Use a file tool. Then stop."
+  side_effect: "proof.txt exists and equals the nonce"
+fault:
+  class: empty-active-platform-toolset
+  note: "cli: [] is fail-closed on purpose. The bug is silence, not execution."
+expect:
+  control:
+    task_success: true
+    tool_schemas_exposed: ">0"
+    actual_tool_calls: ">=1"
+    proof_exists: true
+  fault:
+    tool_schemas_exposed: 0
+    actual_tool_calls: 0
+    proof_exists: false
+    textual_pseudo_tool_call: true
+    diagnostic_on_good: true
+notes:
+  - "Control vs fault distinguishes model-cannot-use-tools from Hermes-exposed-zero-tools."
+  - "Historical gate is the loud-failure diagnostic on the fault arm, with fail-closed tools staying 0."
