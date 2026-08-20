@@ -15,6 +15,7 @@ from hermes_eval.behavior import (
     ESCALATE_N,
     MIN_N_FOR_RATE,
     PREFERRED_N,
+    behavioral_rows,
     control_cell_validity,
     efficiency_given_success,
     failure_cost,
@@ -48,13 +49,16 @@ def analyze_live_result(result: dict[str, Any]) -> dict[str, Any]:
             "historical_warning_comparison": "skipped_live_blocked",
             "observatory": "NOT READY",
         }
-    control = list(extras.get("control_runs") or [])
-    fault = list(extras.get("fault_runs") or [])
+    control_all = list(extras.get("control_runs") or [])
+    fault_all = list(extras.get("fault_runs") or [])
+    control = behavioral_rows(control_all)
+    fault = behavioral_rows(fault_all)
     c_ok = sum(1 for r in control if r.get("task_success"))
     f_ok = sum(1 for r in fault if r.get("task_success"))
     validity = control_cell_validity(c_ok, len(control))
     control_block = {
         "n": len(control),
+        "n_infra_startup": len(control_all) - len(control),
         "success": reportable_rate(c_ok, len(control)),
         "validity": validity,
         "efficiency_given_success": efficiency_given_success(control),
@@ -63,6 +67,7 @@ def analyze_live_result(result: dict[str, Any]) -> dict[str, Any]:
     }
     fault_block = {
         "n": len(fault),
+        "n_infra_startup": len(fault_all) - len(fault),
         "success": reportable_rate(f_ok, len(fault)),
         "failure_modes": failure_mode_distribution(fault),
         "efficiency_given_success": efficiency_given_success(fault),
@@ -70,10 +75,11 @@ def analyze_live_result(result: dict[str, Any]) -> dict[str, Any]:
         "execution_all_runs": _execution_all(fault),
         "note": (
             "Fault-arm task success is expected ~0. Known-good makes an empty "
-            "toolset loud; it does not restore tools."
+            "toolset loud; it does not restore tools. Infra-startup rows are "
+            "excluded from these denominators."
         ),
     }
-    traces = _per_run_traces(result, control, fault)
+    traces = _per_run_traces(result, control_all, fault_all)
     integrity = _trace_integrity(result, traces)
     return {
         "status": "RUN",

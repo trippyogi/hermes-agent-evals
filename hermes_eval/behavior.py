@@ -120,6 +120,21 @@ def is_infra_startup_failure(*, exit_code: int | None, stderr: str, usage: dict,
     return False
 
 
+def is_behavioral_row(row: dict[str, Any] | None) -> bool:
+    """False for infra-startup failures. Those must not enter behavioral rates."""
+    if not row:
+        return False
+    if row.get("infra_startup_failure"):
+        return False
+    if row.get("failure_class") == "infra_startup":
+        return False
+    return True
+
+
+def behavioral_rows(rows: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    return [r for r in (rows or []) if is_behavioral_row(r)]
+
+
 def should_retry_infra(attempt: int, *, infra: bool) -> bool:
     """Completed provider/template failures must not be retried."""
     return infra and attempt < INFRA_STARTUP_RETRIES

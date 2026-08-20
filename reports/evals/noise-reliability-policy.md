@@ -60,9 +60,9 @@ toolset loud; it does not restore tools.
 
 | Class | Example | Retry? |
 |---|---|---|
-| `infra_startup` | `ModuleNotFoundError`, missing interpreter, process never started, no usage file and no completed model response | **Yes, once**, and only if it happens **before** the eval run begins |
-| `provider_template` | Completed oneshot that emits raw `<function=...>`, JSON-in-text, or a hallucinated "I wrote the file" | **No** |
-| `completed` | Normal model finish, success or fail | **No** |
+| Provider/template failure | Completed oneshot that emits raw `<function=...>`, JSON-in-text, or a hallucinated "I wrote the file" | **No.** Own failure class. |
+| Infra startup | `ModuleNotFoundError`, missing interpreter, process never started, no usage file and no completed model response | **Yes, once**, and only if it happens **before** the eval run begins. **Never enter the denominator** for control/fault behavioral rates or Wilson intervals. |
+| Completed | Normal model finish, success or fail | **No** |
 
 A completed bad model response is a result. Silently retrying it until
 it passes would erase the failure class this cell exists to measure.

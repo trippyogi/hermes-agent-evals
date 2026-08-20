@@ -20,6 +20,7 @@ if str(REPO) not in sys.path:
 
 from hermes_eval.behavior import (
     PREFERRED_N,
+    behavioral_rows,
     classify_fault_text,
     control_cell_validity,
     is_infra_startup_failure,
@@ -427,16 +428,20 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = PREFERRED
             )
         )
     duration_ms = (time.perf_counter() - started) * 1000
-    c_ok = sum(1 for r in control_rows if r.get("task_success"))
-    f_ok = sum(1 for r in fault_rows if r.get("task_success"))
-    control_success = wilson_interval(c_ok, len(control_rows))
-    fault_success = wilson_interval(f_ok, len(fault_rows))
-    validity = control_cell_validity(c_ok, len(control_rows))
+    control_beh = behavioral_rows(control_rows)
+    fault_beh = behavioral_rows(fault_rows)
+    n_control_infra = len(control_rows) - len(control_beh)
+    n_fault_infra = len(fault_rows) - len(fault_beh)
+    c_ok = sum(1 for r in control_beh if r.get("task_success"))
+    f_ok = sum(1 for r in fault_beh if r.get("task_success"))
+    control_success = wilson_interval(c_ok, len(control_beh)) if control_beh else wilson_interval(0, 0)
+    fault_success = wilson_interval(f_ok, len(fault_beh)) if fault_beh else wilson_interval(0, 0)
+    validity = control_cell_validity(c_ok, len(control_beh))
     control_task_success_rate = control_success.get("rate")
     fault_task_success_rate = fault_success.get("rate")
-    fault_textual_pseudo_tool_call_rate = _rate(fault_rows, "textual_pseudo_tool_call")
-    fault_diagnostic_rate = _rate(fault_rows, "diagnostic_emitted")
-    fault_tool_rate = _mean(fault_rows, "actual_tool_calls")
+    fault_textual_pseudo_tool_call_rate = _rate(fault_beh, "textual_pseudo_tool_call")
+    fault_diagnostic_rate = _rate(fault_beh, "diagnostic_emitted")
+    fault_tool_rate = _mean(fault_beh, "actual_tool_calls")
     params = {
         "temperature": temperature,
         "reasoning": reasoning,
@@ -465,7 +470,8 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = PREFERRED
         (
             "Provider/template failures such as raw <function=...> stay their "
             "own class. Only infrastructure startup failures before the eval "
-            "run begins may retry once."
+            "run begins may retry once. Infra-startup rows are excluded from "
+            "control/fault behavioral rate denominators."
         ),
     ]
     if not validity.get("valid"):
@@ -501,20 +507,24 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path, reps: int = PREFERRED
             "fault_task_success": fault_success,
             "control_task_success_rate": control_task_success_rate,
             "fault_task_success_rate": fault_task_success_rate,
+            "n_control_behavioral": len(control_beh),
+            "n_fault_behavioral": len(fault_beh),
+            "n_control_infra_startup": n_control_infra,
+            "n_fault_infra_startup": n_fault_infra,
             "fault_textual_pseudo_tool_call_rate": fault_textual_pseudo_tool_call_rate,
-            "fault_pseudo_json_like_rate": _rate(fault_rows, "pseudo_json_like"),
-            "fault_pseudo_xml_function_rate": _rate(fault_rows, "pseudo_xml_function"),
-            "fault_pseudo_other_rate": _rate(fault_rows, "pseudo_other"),
-            "fault_hallucinated_completion_rate": _rate(fault_rows, "hallucinated_completion"),
-            "fault_explicit_capability_failure_rate": _rate(fault_rows, "explicit_capability_failure"),
-            "fault_remediation_requested_rate": _rate(fault_rows, "remediation_requested"),
+            "fault_pseudo_json_like_rate": _rate(fault_beh, "pseudo_json_like"),
+            "fault_pseudo_xml_function_rate": _rate(fault_beh, "pseudo_xml_function"),
+            "fault_pseudo_other_rate": _rate(fault_beh, "pseudo_other"),
+            "fault_hallucinated_completion_rate": _rate(fault_beh, "hallucinated_completion"),
+            "fault_explicit_capability_failure_rate": _rate(fault_beh, "explicit_capability_failure"),
+            "fault_remediation_requested_rate": _rate(fault_beh, "remediation_requested"),
             "fault_diagnostic_rate": fault_diagnostic_rate,
             "fault_mean_actual_tool_calls": fault_tool_rate,
-            "control_mean_turns": _mean(control_rows, "turns"),
-            "fault_mean_turns": _mean(fault_rows, "turns"),
-            "control_mean_input_tokens": _mean(control_rows, "input_tokens"),
-            "control_mean_output_tokens": _mean(control_rows, "output_tokens"),
-            "control_mean_cache_read_tokens": _mean(control_rows, "cache_read_tokens"),
+            "control_mean_turns": _mean(control_beh, "turns"),
+            "fault_mean_turns": _mean(fault_beh, "turns"),
+            "control_mean_input_tokens": _mean(control_beh, "input_tokens"),
+            "control_mean_output_tokens": _mean(control_beh, "output_tokens"),
+            "control_mean_cache_read_tokens": _mean(control_beh, "cache_read_tokens"),
             "control_runs": control_rows,
             "fault_runs": fault_rows,
         },

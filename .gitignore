@@ -2,6 +2,7 @@
 .cache/
 results/*
 !results/atof-waste-adjudication.json
+!results/atof-waste-validity.json
 __pycache__/
 *.py[cod]
 *.egg-info/

@@ -6,17 +6,17 @@ Two products:
    Ready as of v0.2; v0.3 makes it re-scoreable from TraceV1 and runs it
    in GitHub Actions. Maintenance only. Do not expand it.
 2. **Hermes Behavioral Observatory** — slower, repeated model runs.
-   **NOT READY.** v0.4 shipped the statistics pipeline (live cell BLOCKED).
-   v0.4.1 emits the 13-episode real-ATOF adjudication packet and is
-   **WAITING_FOR_HUMAN_LABELS**. READY also requires those labels plus a
-   promoted production-derived metric.
+   **NOT READY.** v0.4.1 now has an adjudicated production-derived metric
+   (`textual_tool_protocol_failure` v1). The first live cell is still
+   BLOCKED / not deliberately run. READY still requires a real repeated
+   live cell with infra-startup rows excluded from behavioral rates.
 
 | Milestone | Goal | Main output | Gate |
 |---|---|---|---|
 | v0.3 Trace spine | Neutral representation | TraceV1 + adapters + re-scoring | Existing 3 fixtures reproduce from trace |
 | v0.3.1 Toolperf ingestion | External validation | 108-run ATOF archive → TraceV1 | Metric identity vs abeval; no new fixtures |
 | v0.4 Behavioral statistics | Stochastic behavior | Analysis utilities + live cell + policy | Wilson / efficiency-given-success / toolperf sanity. Live may be BLOCKED. |
-| v0.4.1 Waste adjudication | Label real ATOF waste | 13 toolperf episodes, human verdicts | Packet emitted; WAITING_FOR_HUMAN_LABELS |
+| v0.4.1 Waste adjudication | Label real ATOF waste | 13 episodes labeled; W6 kept as protocol failure | Precision among decided; textual_tool_protocol_failure v1 |
 | v0.5 Stateful task contract | Grade outcomes without one trajectory | State/frame-condition scorer | Correct alternative trajectories pass |
 | v0.6 Production corpus | Mine real Hermes behavior | Adjudicated ATOF → promotable fixtures | Human-labeled production evidence |
 | Later harness comparison | Separate model from harness | Hermes/Pi/OpenClaw adapters | Same task, same model, different harness |
@@ -43,7 +43,6 @@ Fault-arm **task success stays ~0**. Known-good is loud, not tool restoration.
 
 ## Next (information gain)
 
-1. **v0.4.1** — human labels on the 13 real ATOF waste episodes, then detector precision / KEEP-REFINE-MERGE-DROP.
-2. Deliberate N=10 live cell (choose model/provider; eval-scoped credentials).
-3. **v0.5** — state/frame-condition contract.
-4. **v0.6** — production mining.
+1. Deliberate N=10 live cell (choose model/provider; eval-scoped credentials). Infra-startup rows must stay out of behavioral denominators.
+2. **v0.5** — state/frame-condition contract.
+3. **v0.6** — production mining.

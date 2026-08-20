@@ -65,8 +65,11 @@ class AdjudicateAtofTests(unittest.TestCase):
         self.assertEqual(scored["by_detector"]["W6"]["precision_among_decided"], 1.0)
         self.assertEqual(scored["by_detector"]["W3"]["precision_among_decided"], 0.0)
         self.assertEqual(scored["taxonomy"]["W6"]["action"], "KEEP")
+        self.assertEqual(scored["taxonomy"]["W6"]["reframe"], "textual_tool_protocol_failure")
         self.assertEqual(scored["taxonomy"]["W3"]["action"], "REFINE")
+        self.assertEqual(scored["taxonomy"]["W5"]["action"], "REFINE")
         self.assertEqual(scored["taxonomy"]["W3+W5"]["action"], "MERGE")
+        self.assertEqual(scored["metrics"]["textual_tool_protocol_failure"]["count"], 7)
         self.assertEqual(scored["by_detector"]["W1"]["unique_episodes"], 0)
         self.assertEqual(scored["taxonomy"]["W1"]["action"], "KEEP")
 

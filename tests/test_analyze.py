@@ -178,6 +178,26 @@ class LiveAnalysisTests(unittest.TestCase):
         self.assertEqual(xml["rate"], 1.0)
         self.assertEqual(analysis["pass_at_k"], "not_computed_n_too_small")
 
+    def test_infra_startup_excluded_from_fault_rates(self):
+        result = self._live_result(control_ok=9, n=10, fault_xml=True)
+        result["extras"]["fault_runs"].append(
+            {
+                "arm": "fault",
+                "task_success": False,
+                "infra_startup_failure": True,
+                "failure_class": "infra_startup",
+                "textual_pseudo_tool_call": False,
+                "pseudo_xml_function": False,
+                "diagnostic_emitted": False,
+                "turns": 0,
+            }
+        )
+        analysis = analyze_live_result(result)
+        self.assertEqual(analysis["fault"]["n"], 10)
+        self.assertEqual(analysis["fault"]["n_infra_startup"], 1)
+        self.assertEqual(analysis["fault"]["failure_modes"]["pseudo_xml_function"]["n"], 10)
+        self.assertEqual(analysis["fault"]["failure_modes"]["pseudo_xml_function"]["rate"], 1.0)
+
     def test_per_run_trace_has_required_events(self):
         result = self._live_result(control_ok=1, n=1)
         row = result["extras"]["control_runs"][0]

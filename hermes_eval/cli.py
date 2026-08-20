@@ -610,7 +610,14 @@ def cmd_adjudicate_atof(args: argparse.Namespace) -> int:
 
 
 def cmd_score_adjudication(args: argparse.Namespace) -> int:
-    from hermes_eval.adjudicate_atof import default_json_path, labels_complete, score_packet
+    from hermes_eval.adjudicate_atof import (
+        default_json_path,
+        default_md_path,
+        labels_complete,
+        render_packet_md,
+        render_validity_md,
+        score_packet,
+    )
 
     path = Path(args.packet) if args.packet else default_json_path()
     packet = json.loads(path.read_text(encoding="utf-8"))
@@ -618,9 +625,17 @@ def cmd_score_adjudication(args: argparse.Namespace) -> int:
     dest = Path(args.out) if args.out else (REPO_ROOT / "results" / "atof-waste-validity.json")
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(scored, indent=2) + "\n", encoding="utf-8")
+    if labels_complete(packet):
+        report_path = REPO_ROOT / "reports" / "evals" / "v0.4.1-atof-waste-validity.md"
+        report_path.write_text(render_validity_md(packet, scored), encoding="utf-8")
+        packet["status"] = "LABELED"
+        path.write_text(json.dumps(packet, indent=2) + "\n", encoding="utf-8")
+        default_md_path().write_text(render_packet_md(packet), encoding="utf-8")
+        sys.stderr.write(f"\n{report_path}\n{scored.get('status')}\n")
+    else:
+        sys.stderr.write("WAITING_FOR_HUMAN_LABELS\n")
     print(json.dumps(scored, indent=2))
     if not labels_complete(packet):
-        sys.stderr.write("WAITING_FOR_HUMAN_LABELS\n")
         return 2
     return 0
 

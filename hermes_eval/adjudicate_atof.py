@@ -373,6 +373,37 @@ def score_packet(packet: dict[str, Any]) -> dict[str, Any]:
         if verd in slot:
             slot[verd] += 1
     taxonomy = _taxonomy_draft(by_w, combos)
+    w6_waste = [
+        ep
+        for ep in episodes
+        if "W6" in (ep.get("detectors") or []) and ep["HUMAN_VERDICT"] == "waste"
+    ]
+    metrics = None
+    if w6_waste and by_w["W6"].get("precision_among_decided") == 1.0:
+        metrics = {
+            "textual_tool_protocol_failure": {
+                "version": 1,
+                "count": len(w6_waste),
+                "n_decided_w6": by_w["W6"]["decided"],
+                "rate_among_decided_w6": 1.0,
+                "episode_ids": [ep["episode_id"] for ep in w6_waste],
+                "corpus": packet.get("dataset") or DATASET,
+                "definition": (
+                    "assistant emits recognizable tool invocation syntax AND "
+                    "zero corresponding structured tool executions occur AND "
+                    "the attempted action is necessary for task progress"
+                ),
+                "likely_cause": "unknown",
+                "likely_cause_allowed": [
+                    "provider_template",
+                    "model_tool_format",
+                    "harness_parser",
+                    "unknown",
+                ],
+                "does_not_imply_hermes_planning_waste": True,
+                "population_prevalence": "unsupported",
+            }
+        }
     return {
         "status": "LABELED",
         "n_episodes": 13,
@@ -386,7 +417,7 @@ def score_packet(packet: dict[str, Any]) -> dict[str, Any]:
         "recall": "unsupported",
         "population_prevalence": "unsupported",
         "composite_score": "forbidden",
-        "metrics": None,
+        "metrics": metrics,
     }
 
 
@@ -411,6 +442,36 @@ def _taxonomy_draft(by_w: dict[str, dict[str, Any]], combos: dict[str, dict[str,
             continue
         if prec is None:
             recs[label] = {"action": "KEEP", "reason": "no decided labels"}
+        elif label == "W6" and prec >= 0.8:
+            recs[label] = {
+                "action": "KEEP",
+                "reframe": "textual_tool_protocol_failure",
+                "reason": (
+                    "high-precision protocol failure: textual tool syntax with zero "
+                    "structured executions. Do not treat as Hermes planning waste. "
+                    "Record likely cause separately (provider_template / "
+                    "model_tool_format / harness_parser / unknown)."
+                ),
+            }
+        elif label == "W3" and prec <= 0.2:
+            recs[label] = {
+                "action": "REFINE",
+                "reason": (
+                    "no-state-change is not sufficient for reads; reads acquire "
+                    "information without mutating state. Require action identity "
+                    "plus information novelty."
+                ),
+            }
+        elif label == "W5" and prec <= 0.2:
+            recs[label] = {
+                "action": "REFINE",
+                "reason": (
+                    "identical-read fired after argument identity was lost. "
+                    "Require canonicalized arguments to match exactly; if "
+                    "path/offset/query changes it is not a repeated read. "
+                    "Compare result hashes when present."
+                ),
+            }
         elif prec >= 0.8:
             recs[label] = {"action": "KEEP", "reason": f"precision {prec:.2f} among {decided} decided"}
         elif prec <= 0.2:
@@ -421,7 +482,10 @@ def _taxonomy_draft(by_w: dict[str, dict[str, Any]], combos: dict[str, dict[str,
     if w3w5.get("unique_episodes") and by_w["W3"]["unique_episodes"] == w3w5.get("unique_episodes") and by_w["W5"]["unique_episodes"] == w3w5.get("unique_episodes"):
         recs["W3+W5"] = {
             "action": "MERGE",
-            "reason": "every W3 hit in this packet is also W5; unique contribution is unproven here",
+            "reason": (
+                "every W3 hit in this packet is also W5. Merge into identity-aware "
+                "repeat detection rather than keep two overlapping false-positive rules."
+            ),
         }
     return recs
 
@@ -484,26 +548,103 @@ def render_packet_md(packet: dict[str, Any]) -> str:
                 f"  - after: `{_snip(ep['trajectory']['after'])}`",
                 f"- detector evidence: `{ep.get('detector_evidence')}`",
                 f"- tail: `{ep.get('final_output_tail')}`",
-                "- HUMAN_VERDICT:",
-                "- HUMAN_REASON:",
+                f"- HUMAN_VERDICT: `{ep.get('HUMAN_VERDICT')}`",
+                f"- HUMAN_REASON: {ep.get('HUMAN_REASON') or ''}",
                 "",
             ]
         )
-    lines.extend(
+    if labels_complete(packet):
+        lines.extend(
+            [
+                "## Next gate",
+                "",
+                "Labels are complete. Validity report: `reports/evals/v0.4.1-atof-waste-validity.md`.",
+                "Do not compute recall or population prevalence. No composite waste score.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "## Next gate",
+                "",
+                "**WAITING_FOR_HUMAN_LABELS**",
+                "",
+                "After all 13 HUMAN_VERDICT fields are filled: `python -m hermes_eval score-adjudication`.",
+                "Partial labels are not enough. That pass computes detector precision among decided",
+                "episodes, overlap combinations, unique contribution, and a *draft* KEEP / REFINE / MERGE / DROP table.",
+                "It will not compute recall or population prevalence, and will not emit a composite waste score.",
+                "",
+            ]
+        )
+    return "\n".join(lines) + "\n"
+
+
+def render_validity_md(packet: dict[str, Any], scored: dict[str, Any]) -> str:
+    by_w = scored.get("by_detector") or {}
+    tax = scored.get("taxonomy") or {}
+    metric = (scored.get("metrics") or {}).get("textual_tool_protocol_failure") or {}
+    rows = []
+    for label in ("W1", "W2", "W3", "W4", "W5", "W6"):
+        s = by_w.get(label) or {}
+        prec = s.get("precision_among_decided")
+        prec_s = f"{prec:.0%}" if isinstance(prec, float) else "n/a"
+        rows.append(
+            f"| {label} | {s.get('unique_episodes', 0)} | {s.get('decided', 0)} | "
+            f"{s.get('waste', 0)} | {s.get('not_waste', 0)} | {s.get('unsure', 0)} | {prec_s} |"
+        )
+    tax_lines = []
+    for key, rec in tax.items():
+        tax_lines.append(f"- **{key}** — `{rec.get('action')}`: {rec.get('reason')}")
+        if rec.get("reframe"):
+            tax_lines.append(f"  - reframe as `{rec['reframe']}`")
+    metric_block = ["No production-derived metric promoted (W6 precision gate not met)."]
+    if metric:
+        metric_block = [
+            f"**textual_tool_protocol_failure** v{metric.get('version')} — KEEP.",
+            "",
+            f"- count: {metric.get('count')} (episode ids: {', '.join(metric.get('episode_ids') or [])})",
+            f"- rate among decided W6: {metric.get('rate_among_decided_w6')}",
+            f"- corpus: `{metric.get('corpus')}`",
+            f"- likely_cause this set: `{metric.get('likely_cause')}` (allowed: {', '.join(metric.get('likely_cause_allowed') or [])})",
+            "- This is execution waste from the user's perspective. It does **not** imply Hermes planned a wasted turn.",
+            "- Population prevalence is unsupported. Do not say “X% of Hermes is waste.”",
+        ]
+    return "\n".join(
         [
-            "## Next gate",
+            "# v0.4.1 — ATOF waste detector validity",
             "",
-            "**WAITING_FOR_HUMAN_LABELS**",
+            f"Status: **{scored.get('status')}**",
+            f"Dataset: `{packet.get('dataset')}`",
             "",
-            "After labels: `python -m hermes_eval score-adjudication`.",
-            "That pass computes detector precision among decided episodes, overlap",
-            "combinations, unique contribution, and a *draft* KEEP / REFINE / MERGE / DROP table.",
-            "Draft taxonomy is heuristic; humans can override. It will not compute recall or",
-            "population prevalence, and will not emit a composite waste score.",
+            "Precision is among decided detected episodes only. Recall is unsupported.",
+            "Population prevalence is unsupported. No composite score.",
+            "",
+            f"Decided: {scored.get('decided')} waste={scored.get('waste')} not_waste={scored.get('not_waste')} unsure={scored.get('unsure')}",
+            "",
+            "| Detector | Unique episodes | Decided | Waste | Not waste | Unsure | Precision |",
+            "|---|---|---|---|---|---|---|",
+            *rows,
+            "",
+            "## Taxonomy",
+            "",
+            *tax_lines,
+            "",
+            "## Promoted metric",
+            "",
+            *metric_block,
+            "",
+            "## Observatory",
+            "",
+            "Adjudicated production-derived metric: **present** "
+            "(textual_tool_protocol_failure v1)."
+            if metric
+            else "Adjudicated production-derived metric: still missing.",
+            "Live repeated cell: still BLOCKED / not yet deliberately run.",
+            "Hermes Behavioral Observatory: **NOT READY**.",
             "",
         ]
     )
-    return "\n".join(lines) + "\n"
 
 
 def default_ingest_path() -> Path:

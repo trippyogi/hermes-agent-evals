@@ -1,0 +1,134 @@
+{
+  "status": "LABELED",
+  "n_episodes": 13,
+  "decided": 13,
+  "waste": 7,
+  "not_waste": 6,
+  "unsure": 0,
+  "by_detector": {
+    "W1": {
+      "unique_episodes": 0,
+      "decided": 0,
+      "waste": 0,
+      "not_waste": 0,
+      "unsure": 0,
+      "precision_among_decided": null
+    },
+    "W2": {
+      "unique_episodes": 0,
+      "decided": 0,
+      "waste": 0,
+      "not_waste": 0,
+      "unsure": 0,
+      "precision_among_decided": null
+    },
+    "W3": {
+      "unique_episodes": 6,
+      "decided": 6,
+      "waste": 0,
+      "not_waste": 6,
+      "unsure": 0,
+      "precision_among_decided": 0.0
+    },
+    "W4": {
+      "unique_episodes": 0,
+      "decided": 0,
+      "waste": 0,
+      "not_waste": 0,
+      "unsure": 0,
+      "precision_among_decided": null
+    },
+    "W5": {
+      "unique_episodes": 6,
+      "decided": 6,
+      "waste": 0,
+      "not_waste": 6,
+      "unsure": 0,
+      "precision_among_decided": 0.0
+    },
+    "W6": {
+      "unique_episodes": 7,
+      "decided": 7,
+      "waste": 7,
+      "not_waste": 0,
+      "unsure": 0,
+      "precision_among_decided": 1.0
+    }
+  },
+  "overlap_combinations": {
+    "W3+W5": {
+      "unique_episodes": 6,
+      "waste": 0,
+      "not_waste": 6,
+      "unsure": 0
+    },
+    "W6": {
+      "unique_episodes": 7,
+      "waste": 7,
+      "not_waste": 0,
+      "unsure": 0
+    }
+  },
+  "taxonomy": {
+    "W1": {
+      "action": "KEEP",
+      "reason": "no hits on this 13-episode set; absence is not a drop decision"
+    },
+    "W2": {
+      "action": "KEEP",
+      "reason": "no hits on this 13-episode set; absence is not a drop decision"
+    },
+    "W3": {
+      "action": "REFINE",
+      "reason": "no-state-change is not sufficient for reads; reads acquire information without mutating state. Require action identity plus information novelty."
+    },
+    "W4": {
+      "action": "KEEP",
+      "reason": "no hits on this 13-episode set; absence is not a drop decision"
+    },
+    "W5": {
+      "action": "REFINE",
+      "reason": "identical-read fired after argument identity was lost. Require canonicalized arguments to match exactly; if path/offset/query changes it is not a repeated read. Compare result hashes when present."
+    },
+    "W6": {
+      "action": "KEEP",
+      "reframe": "textual_tool_protocol_failure",
+      "reason": "high-precision protocol failure: textual tool syntax with zero structured executions. Do not treat as Hermes planning waste. Record likely cause separately (provider_template / model_tool_format / harness_parser / unknown)."
+    },
+    "W3+W5": {
+      "action": "MERGE",
+      "reason": "every W3 hit in this packet is also W5. Merge into identity-aware repeat detection rather than keep two overlapping false-positive rules."
+    }
+  },
+  "recall": "unsupported",
+  "population_prevalence": "unsupported",
+  "composite_score": "forbidden",
+  "metrics": {
+    "textual_tool_protocol_failure": {
+      "version": 1,
+      "count": 7,
+      "n_decided_w6": 7,
+      "rate_among_decided_w6": 1.0,
+      "episode_ids": [
+        "TP-2026-08-06-E07",
+        "TP-2026-08-06-E08",
+        "TP-2026-08-06-E09",
+        "TP-2026-08-06-E10",
+        "TP-2026-08-06-E11",
+        "TP-2026-08-06-E12",
+        "TP-2026-08-06-E13"
+      ],
+      "corpus": "hermes-toolperf-evals/2026-08-06_rerun",
+      "definition": "assistant emits recognizable tool invocation syntax AND zero corresponding structured tool executions occur AND the attempted action is necessary for task progress",
+      "likely_cause": "unknown",
+      "likely_cause_allowed": [
+        "provider_template",
+        "model_tool_format",
+        "harness_parser",
+        "unknown"
+      ],
+      "does_not_imply_hermes_planning_waste": true,
+      "population_prevalence": "unsupported"
+    }
+  }
+}

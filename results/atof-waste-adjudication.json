@@ -1,6 +1,6 @@
 {
   "packet_version": 1,
-  "status": "WAITING_FOR_HUMAN_LABELS",
+  "status": "LABELED",
   "dataset": "hermes-toolperf-evals/2026-08-06_rerun",
   "v0_4_sha": "ce6297df337ab0dc1abc82e6c69f842c03431451",
   "harness_sha": "ce6297df337ab0dc1abc82e6c69f842c03431451",
@@ -75,7 +75,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -189,8 +189,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r0"
     },
     {
@@ -233,7 +233,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -347,8 +347,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r1"
     },
     {
@@ -391,7 +391,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -505,8 +505,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r2"
     },
     {
@@ -549,7 +549,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -663,8 +663,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r0"
     },
     {
@@ -707,7 +707,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -821,8 +821,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r1"
     },
     {
@@ -865,7 +865,7 @@
       "error_occurred": false,
       "task_outcome": "unknown",
       "task_outcome_note": "NOT_RECONSTRUCTABLE_FROM_ARCHIVE",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "neutral",
       "turns_remaining_after_candidate": 1,
       "metrics": {
         "llm": 3,
@@ -979,8 +979,8 @@
         "W5": "identical read with unchanged arguments",
         "episode": "identical retry with unchanged state token"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "not_waste",
+      "HUMAN_REASON": "Distinct required read_file call with different path and new information; detector false positive caused by lost argument identity.",
       "trace_run_id": "err_multi_dir-r2"
     },
     {
@@ -1016,7 +1016,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1057,8 +1057,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_big_output-r0"
     },
     {
@@ -1094,7 +1094,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1135,8 +1135,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_big_output-r1"
     },
     {
@@ -1172,7 +1172,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1213,8 +1213,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_inline_script-r1"
     },
     {
@@ -1250,7 +1250,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1291,8 +1291,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_big_output-r2"
     },
     {
@@ -1328,7 +1328,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1369,8 +1369,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_inline_script-r2"
     },
     {
@@ -1406,7 +1406,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1447,8 +1447,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_big_output-r0"
     },
     {
@@ -1484,7 +1484,7 @@
       "error_occurred": false,
       "task_outcome": "failure",
       "task_outcome_note": "reconstructed_from_tail",
-      "candidate_relationship_to_outcome": null,
+      "candidate_relationship_to_outcome": "harmful",
       "turns_remaining_after_candidate": 0,
       "metrics": {
         "llm": 1,
@@ -1525,8 +1525,8 @@
         "W6": "transcript contains a JSON/XML tool call and events have zero structured tools",
         "episode": "transcript contains a JSON/XML tool call and events have zero structured tools"
       },
-      "HUMAN_VERDICT": null,
-      "HUMAN_REASON": null,
+      "HUMAN_VERDICT": "waste",
+      "HUMAN_REASON": "Textual pseudo-tool call consumed the model turn, no structured tool executed, and the task terminated unsuccessfully. Root cause may be provider/chat-template/tool-protocol formatting rather than agent planning; classify the episode as harmful execution waste without attributing cause to Hermes.",
       "trace_run_id": "err_big_output-r1"
     }
   ]
