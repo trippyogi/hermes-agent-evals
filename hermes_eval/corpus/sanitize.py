@@ -18,11 +18,14 @@ _KEY = re.compile(r"\b(?:sk-(?:ant-)?[A-Za-z0-9_-]{8,}|gh[opusr]_[A-Za-z0-9]{20,
 _JWT = re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")
 _EMAIL = re.compile(r"(?<![\w.+-])[\w.+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?![\w.-])")
 _POSIX_HOME = re.compile(r"(?<![\w])/(?:home|Users)/[^/\s\"']+(?:/[^\s\"']*)?")
+# Handles paths embedded in JSON-encoded tool results and unified-diff a//b/
+# prefixes, where a conservative generic absolute-path boundary is unavailable.
+_POSIX_ROOTED = re.compile(r"/(?:home|Users|tmp|srv|var|opt|etc)(?:/[A-Za-z0-9._~+\-]+)+")
 _POSIX_ABSOLUTE = re.compile(r"(?<![:/\w])/(?:[A-Za-z0-9._~+-]+/)*[A-Za-z0-9._~+-]+")
 _WINDOWS_HOME = re.compile(r"(?i)\b[A-Z]:\\Users\\[^\\\s\"']+(?:\\[^\s\"']*)?")
 _WINDOWS_ABSOLUTE = re.compile(r"(?i)\b[A-Z]:\\(?:[^\\\s\"']+\\)*[^\\\s\"']+")
 _UNC = re.compile(r"\\\\[^\\\s]+\\[^\s\"']+")
-_RESIDUAL = (_BEARER, _KEY, _JWT, _INLINE_SECRET, _COOKIE_HEADER, _POSIX_HOME, _POSIX_ABSOLUTE, _WINDOWS_HOME, _WINDOWS_ABSOLUTE, _UNC)
+_RESIDUAL = (_BEARER, _KEY, _JWT, _INLINE_SECRET, _COOKIE_HEADER, _POSIX_HOME, _POSIX_ROOTED, _POSIX_ABSOLUTE, _WINDOWS_HOME, _WINDOWS_ABSOLUTE, _UNC)
 
 
 def _fingerprint(value: str) -> str:
@@ -57,6 +60,7 @@ class CorpusSanitizer:
             lambda m: f"{m.group(1)}{m.group(2)}<CREDENTIAL_FINGERPRINT_{_fingerprint(self.corpus_id + ':' + m.group(3))}>", out
         )
         out = _POSIX_HOME.sub(lambda m: self._stable("PATH", m.group(0)), out)
+        out = _POSIX_ROOTED.sub(lambda m: self._stable("PATH", m.group(0)), out)
         out = _WINDOWS_HOME.sub(lambda m: self._stable("PATH", m.group(0)), out)
         out = _UNC.sub(lambda m: self._stable("PATH", m.group(0)), out)
         out = _WINDOWS_ABSOLUTE.sub(lambda m: self._stable("PATH", m.group(0)), out)
