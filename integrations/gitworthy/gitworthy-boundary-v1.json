@@ -1,0 +1,53 @@
+{
+  "schema": "GitWorthyAdvisoryBoundaryV1",
+  "schema_version": 1,
+  "gitworthy": {
+    "repository": "trippyogi/gitworthy",
+    "sha": "321f9d02ff104229793af4fbd76ff3c25223128a",
+    "package_version": "0.4.1",
+    "ranking_version": "1"
+  },
+  "frozen_eval": {
+    "case_count": 31,
+    "cases_sha256": "412e0ee1f9cb9b1cb8d96d095f59ea93dc96f6173fe9c6a9a1937eb97a4f359f",
+    "verdict_vector": [
+      {"case_id": "frozen-branch-in-flight", "verdict": "VERIFY"},
+      {"case_id": "frozen-branch-no-match", "verdict": "ACT"},
+      {"case_id": "frozen-contention-superseded-overlap", "verdict": "VERIFY"},
+      {"case_id": "frozen-contrib-claim-required", "verdict": "VERIFY"},
+      {"case_id": "frozen-contrib-clean", "verdict": "ACT"},
+      {"case_id": "frozen-contrib-evidence-requirements", "verdict": "VERIFY"},
+      {"case_id": "frozen-contrib-no-pr-path", "verdict": "VERIFY"},
+      {"case_id": "frozen-dupe-closed-title-gate", "verdict": "ACT"},
+      {"case_id": "frozen-dupe-ignores-pr-row", "verdict": "ACT"},
+      {"case_id": "frozen-dupe-medium-lexical", "verdict": "VERIFY"},
+      {"case_id": "frozen-dupe-no-candidates", "verdict": "ACT"},
+      {"case_id": "frozen-issue-partial-overlap", "verdict": "VERIFY"},
+      {"case_id": "frozen-issue-shipped", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-assigned", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-automation-ignored", "verdict": "ACT"},
+      {"case_id": "frozen-linked-closed-unmerged", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-competing-closers", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-draft-ignored", "verdict": "ACT"},
+      {"case_id": "frozen-linked-empty-timeline", "verdict": "ACT"},
+      {"case_id": "frozen-linked-merged-verify", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-open-closer", "verdict": "VERIFY"},
+      {"case_id": "frozen-linked-title-overlap-only", "verdict": "VERIFY"},
+      {"case_id": "frozen-release-released-fix", "verdict": "SKIP"},
+      {"case_id": "frozen-release-version-only", "verdict": "VERIFY"},
+      {"case_id": "frozen-repo-rename-canonical", "verdict": "ACT"},
+      {"case_id": "frozen-smoke-dupe", "verdict": "VERIFY"},
+      {"case_id": "frozen-worth-act-greenfield", "verdict": "ACT"},
+      {"case_id": "frozen-worth-rate-limit-verify", "verdict": "VERIFY"},
+      {"case_id": "frozen-worth-skip-open-closer", "verdict": "SKIP"},
+      {"case_id": "frozen-worth-skip-released-fix", "verdict": "SKIP"},
+      {"case_id": "frozen-worth-verify-assigned", "verdict": "VERIFY"}
+    ]
+  },
+  "boundary": {
+    "production_bridge_references": [],
+    "policy_dependency_count": 21,
+    "policy_reads_track_o_covariates": false,
+    "policy_reads_eval_evidence": false
+  }
+}

@@ -1,6 +1,7 @@
 {
   "schema": "EvalOpportunityV1",
   "schema_version": 1,
+  "information_phase": "T0",
   "target": "NousResearch/hermes-agent#123",
   "evaluated_at": "2026-08-21T00:00:00Z",
   "issue_shape": "bug",

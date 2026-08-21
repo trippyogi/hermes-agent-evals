@@ -1,6 +1,7 @@
 {
   "schema": "EvalEvidenceV1",
   "schema_version": 1,
+  "information_phase": "T1",
   "target": "NousResearch/hermes-agent#123",
   "evaluated_at": "2026-08-21T01:00:00Z",
   "decision_id": "decision_example",

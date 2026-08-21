@@ -3,9 +3,9 @@
   "$id": "https://github.com/trippyogi/hermes-agent-evals/integrations/gitworthy/eval-opportunity-v1.schema.json",
   "title": "EvalOpportunityV1",
   "type": "object", "additionalProperties": false,
-  "required": ["schema", "schema_version", "target", "evaluated_at", "issue_shape", "evalability", "recommended_contribution_mode", "required_checks", "limitations"],
+  "required": ["schema", "schema_version", "information_phase", "target", "evaluated_at", "issue_shape", "evalability", "recommended_contribution_mode", "required_checks", "limitations"],
   "properties": {
-    "schema": {"const": "EvalOpportunityV1"}, "schema_version": {"const": 1},
+    "schema": {"const": "EvalOpportunityV1"}, "schema_version": {"const": 1}, "information_phase": {"const": "T0"},
     "target": {"type": "string", "minLength": 1}, "evaluated_at": {"type": "string", "format": "date-time"},
     "issue_shape": {"enum": ["bug", "regression", "performance", "state", "provider", "platform", "other"]},
     "evalability": {"type": "object", "additionalProperties": false,
