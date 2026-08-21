@@ -34,8 +34,15 @@ class V06SanitizerTests(unittest.TestCase):
         a2 = CorpusSanitizer("a").sanitize(raw)
         b = CorpusSanitizer("b").sanitize(raw)
         self.assertEqual(a1, a2)
-        self.assertEqual(a1["text"], b["text"])
+        self.assertNotEqual(a1["text"], b["text"])
         self.assertNotEqual(a1["token"], b["token"])
+
+    def test_stable_across_chunk_order_and_fresh_instances(self):
+        first = CorpusSanitizer("a").sanitize({"text": "/srv/private/a"})["text"]
+        sanitizer = CorpusSanitizer("a")
+        sanitizer.sanitize({"text": "/tmp/unrelated"})
+        later = sanitizer.sanitize({"text": "/srv/private/a"})["text"]
+        self.assertEqual(first, later)
 
     def test_idempotent(self):
         sanitizer = CorpusSanitizer("a")
@@ -51,6 +58,20 @@ class V06SanitizerTests(unittest.TestCase):
 
     def test_residual_secret_is_detected(self):
         self.assertTrue(scan_sanitized({"text": "Bearer still-secret-value"}))
+
+    def test_absolute_paths_inline_env_and_cookie_are_redacted(self):
+        raw = {
+            "text": "read /srv/private/file and /tmp/a; Cookie: sessionid=abcdefghi",
+            "environment_variables": ["OPENAI_API_KEY=abcdefghijk", "HOME=/home/alice"],
+            "windows": r"C:\\Users\\alice\\private.txt",
+        }
+        sanitizer = CorpusSanitizer("corpus-a")
+        clean = sanitizer.sanitize(raw)
+        rendered = repr(clean)
+        for secret in ("/srv/private/file", "/tmp/a", "sessionid=abcdefghi", "abcdefghijk", "/home/alice", "alice\\\\private"):
+            self.assertNotIn(secret, rendered)
+        self.assertEqual(scan_sanitized(clean), [])
+        self.assertTrue(sanitizer.report(clean, source_type_known=True, manual_spot_check=True)["safe_to_commit"])
 
 
 if __name__ == "__main__":

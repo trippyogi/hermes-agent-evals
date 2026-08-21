@@ -4,12 +4,12 @@
   "title": "CorpusManifestV1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "schema_version", "corpus_id", "source_class", "consent", "privacy_class", "retrieved_at", "raw_artifact_sha256", "adapter", "adapter_version", "trace_schema", "retention", "committable", "identity", "retrieval", "notes"],
+  "required": ["schema", "schema_version", "corpus_id", "source_class", "consent", "privacy_class", "retrieved_at", "raw_artifact_sha256", "adapter", "adapter_version", "trace_schema", "retention", "committable", "safe_to_commit", "identity", "retrieval", "notes"],
   "properties": {
     "schema": {"const": "CorpusManifestV1"},
     "schema_version": {"const": 1},
     "corpus_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
-    "source_class": {"enum": ["public_atof", "local_live_eval", "sanitized_session_export", "public_github", "local_reproduction"]},
+    "source_class": {"enum": ["public_atof", "local_live_eval", "frozen_regression", "sanitized_session_export", "public_github", "local_reproduction"]},
     "source_repo": {"type": ["string", "null"]},
     "source_ref": {"type": ["string", "null"]},
     "license": {"type": ["string", "null"]},
@@ -23,6 +23,7 @@
     "trace_schema": {"const": "TraceV1"},
     "retention": {"enum": ["external_read_only", "sanitized_committed", "local_only", "artifact_store"]},
     "committable": {"type": "boolean"},
+    "safe_to_commit": {"type": "boolean"},
     "identity": {
       "type": "object", "additionalProperties": false,
       "required": ["kind", "value"],
@@ -39,6 +40,55 @@
   },
   "allOf": [
     {"if": {"properties": {"source_class": {"const": "public_atof"}}}, "then": {"required": ["source_repo", "source_ref"]}},
-    {"if": {"properties": {"source_class": {"const": "local_live_eval"}}}, "then": {"required": ["model_artifact_sha256", "provenance"]}}
-  ]
+    {
+      "if": {"properties": {"source_class": {"const": "local_live_eval"}}, "required": ["source_class"]},
+      "then": {
+        "required": ["model_artifact_sha256", "provenance"],
+        "properties": {"model_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+      }
+    },
+    {
+      "if": {"properties": {"committable": {"const": true}}, "required": ["committable"]},
+      "then": {
+        "required": ["redaction"],
+        "properties": {
+          "safe_to_commit": {"const": true},
+          "redaction": {"$ref": "#/$defs/committableRedactionReport"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["class", "pattern"],
+      "properties": {"class": {"type": "string", "minLength": 1}, "pattern": {"type": "string", "minLength": 1}}
+    },
+    "redactionReport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["redaction_version", "corpus_id", "fields_removed", "fields_fingerprinted", "fields_replaced", "removed_pointers", "fingerprinted_pointers", "replaced_pointers", "scans_run", "findings", "warnings", "source_type_known", "manual_review_required", "safe_to_commit"],
+      "properties": {
+        "redaction_version": {"const": 1},
+        "corpus_id": {"type": "string", "minLength": 1},
+        "fields_removed": {"type": "integer", "minimum": 0},
+        "fields_fingerprinted": {"type": "integer", "minimum": 0},
+        "fields_replaced": {"type": "integer", "minimum": 0},
+        "removed_pointers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "fingerprinted_pointers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "replaced_pointers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "scans_run": {"type": "array", "minItems": 3, "items": {"type": "string"}, "uniqueItems": true},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "source_type_known": {"type": "boolean"},
+        "manual_review_required": {"type": "boolean"},
+        "safe_to_commit": {"type": "boolean"}
+      }
+    },
+    "committableRedactionReport": {
+      "allOf": [
+        {"$ref": "#/$defs/redactionReport"},
+        {"properties": {"findings": {"maxItems": 0}, "warnings": {"maxItems": 0}, "source_type_known": {"const": true}, "manual_review_required": {"const": false}, "safe_to_commit": {"const": true}}}
+      ]
+    }
+  }
 }

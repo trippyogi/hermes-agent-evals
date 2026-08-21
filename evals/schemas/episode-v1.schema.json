@@ -4,7 +4,7 @@
   "title": "EpisodeV1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "schema_version", "episode_id", "trace_id", "corpus_id", "source_class", "model", "server", "hermes_sha", "task_id", "start_event_id", "end_event_id", "detectors", "outcome", "relationship_to_outcome", "evidence", "human_verdict", "human_reason"],
+  "required": ["schema", "schema_version", "episode_id", "trace_id", "corpus_id", "source_class", "source_run_id", "model", "server", "hermes_sha", "task_id", "arm", "repetition", "start_event_id", "end_event_id", "sampling_role", "detectors", "outcome", "relationship_to_outcome", "evidence", "context", "provenance", "privacy", "human_verdict", "human_reason"],
   "properties": {
     "schema": {"const": "EpisodeV1"},
     "schema_version": {"const": 1},
@@ -12,17 +12,68 @@
     "trace_id": {"type": "string", "minLength": 1},
     "corpus_id": {"type": "string", "minLength": 1},
     "source_class": {"type": "string", "minLength": 1},
+    "source_run_id": {"type": "string", "minLength": 1},
     "model": {"type": ["string", "null"]},
     "server": {"type": ["string", "null"]},
     "hermes_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
     "task_id": {"type": ["string", "null"]},
+    "arm": {"type": ["string", "null"]},
+    "repetition": {"type": ["integer", "null"], "minimum": 0},
     "start_event_id": {"type": "string", "minLength": 1},
     "end_event_id": {"type": "string", "minLength": 1},
-    "detectors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "sampling_role": {"enum": ["detector_candidate", "negative_control"]},
+    "detectors": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
     "outcome": {"enum": ["success", "failure", "unknown"]},
-    "relationship_to_outcome": {"enum": ["recovery", "harmful", "neutral", "unknown"]},
+    "relationship_to_outcome": {"enum": ["recovery", "harmful", "neutral", "unknown", null]},
     "evidence": {"type": "object"},
+    "context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["previous_action", "candidate_action", "next_action", "arguments_changed", "new_information_acquired", "state_changed", "task_succeeded"],
+      "properties": {
+        "previous_action": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/actionContext"}]},
+        "candidate_action": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/actionContext"}]},
+        "next_action": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/actionContext"}]},
+        "arguments_changed": {"type": ["boolean", "null"]},
+        "new_information_acquired": {"type": ["boolean", "null"]},
+        "state_changed": {"type": ["boolean", "null"]},
+        "task_succeeded": {"type": ["boolean", "null"]}
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["corpus_manifest_sha256", "raw_artifact_sha256", "adapter_version", "sanitizer_version", "trace_schema"],
+      "properties": {
+        "corpus_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "raw_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "adapter_version": {"type": "string", "minLength": 1},
+        "sanitizer_version": {"type": "integer", "minimum": 1},
+        "trace_schema": {"const": "TraceV1"}
+      }
+    },
+    "privacy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["redaction_version", "safe_to_commit"],
+      "properties": {"redaction_version": {"type": "integer", "minimum": 1}, "safe_to_commit": {"const": true}}
+    },
     "human_verdict": {"enum": ["waste", "not_waste", "unsure", null]},
     "human_reason": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"sampling_role": {"const": "detector_candidate"}}}, "then": {"properties": {"detectors": {"minItems": 1}}}},
+    {"if": {"properties": {"sampling_role": {"const": "negative_control"}}}, "then": {"properties": {"detectors": {"maxItems": 0}}}}
+  ],
+  "$defs": {
+    "actionContext": {
+      "type": "object", "additionalProperties": false,
+      "required": ["call_id", "result_id", "tool_name", "canonical_arguments", "result_summary", "status"],
+      "properties": {
+        "call_id": {"type": ["string", "null"]},
+        "result_id": {"type": ["string", "null"]},
+        "tool_name": {"type": ["string", "null"]},
+        "canonical_arguments": {},
+        "result_summary": {"type": ["string", "null"]},
+        "status": {"type": ["string", "null"]}
+      }
+    }
   }
 }
