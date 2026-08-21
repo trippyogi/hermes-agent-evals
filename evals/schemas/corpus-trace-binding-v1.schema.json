@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trippyogi/hermes-agent-evals/evals/schemas/corpus-trace-binding-v1.schema.json",
+  "title": "CorpusTraceBindingV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "corpus_id",
+    "manifest_sha256",
+    "raw_artifact_sha256",
+    "adapter_version",
+    "sanitizer_version",
+    "trace_schema",
+    "source_run_identity",
+    "model",
+    "hermes_sha",
+    "task",
+    "arm",
+    "rep"
+  ],
+  "properties": {
+    "schema": {"const": "CorpusTraceBindingV1"},
+    "schema_version": {"const": 1},
+    "corpus_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "raw_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "adapter_version": {"type": "string", "minLength": 1},
+    "sanitizer_version": {"type": "integer", "minimum": 1},
+    "trace_schema": {"const": "TraceV1"},
+    "source_run_identity": {"type": "string", "minLength": 1},
+    "model": {"type": ["string", "null"]},
+    "hermes_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "task": {"type": "string", "minLength": 1},
+    "arm": {"type": "string", "minLength": 1},
+    "rep": {"type": "integer", "minimum": 0}
+  }
+}

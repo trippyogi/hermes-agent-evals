@@ -14,6 +14,7 @@ from hermes_eval.gitutil import REPO_ROOT
 
 SCHEMAS = {
     "CorpusManifestV1": REPO_ROOT / "evals/schemas/corpus-manifest-v1.schema.json",
+    "CorpusTraceBindingV1": REPO_ROOT / "evals/schemas/corpus-trace-binding-v1.schema.json",
     "EpisodeV1": REPO_ROOT / "evals/schemas/episode-v1.schema.json",
     "EvalOpportunityV1": REPO_ROOT / "integrations/gitworthy/eval-opportunity-v1.schema.json",
     "EvalEvidenceV1": REPO_ROOT / "integrations/gitworthy/eval-evidence-v1.schema.json",
