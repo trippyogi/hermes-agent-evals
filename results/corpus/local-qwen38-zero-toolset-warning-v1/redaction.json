@@ -1,0 +1,689 @@
+{
+  "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+  "findings": [],
+  "redaction_version": 1,
+  "safe_to_commit": true,
+  "source_reports": [
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 12,
+      "fields_removed": 0,
+      "fields_replaced": 3,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/redaction/secrets",
+        "$/events/4/redaction/secrets",
+        "$/events/5/payload/cache_read_tokens",
+        "$/events/5/payload/cache_write_tokens",
+        "$/events/5/payload/input_tokens",
+        "$/events/5/payload/output_tokens",
+        "$/events/5/payload/total_tokens",
+        "$/events/5/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [
+        "$/events/3/payload/arguments/path",
+        "$/events/4/payload/result/files_modified/0",
+        "$/events/4/payload/result/resolved_path"
+      ],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    },
+    {
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "fields_fingerprinted": 10,
+      "fields_removed": 0,
+      "fields_replaced": 0,
+      "findings": [],
+      "fingerprinted_pointers": [
+        "$/events/0/redaction/secrets",
+        "$/events/1/redaction/secrets",
+        "$/events/2/redaction/secrets",
+        "$/events/3/payload/cache_read_tokens",
+        "$/events/3/payload/cache_write_tokens",
+        "$/events/3/payload/input_tokens",
+        "$/events/3/payload/output_tokens",
+        "$/events/3/payload/total_tokens",
+        "$/events/3/redaction/secrets",
+        "$/provenance/redaction/secrets"
+      ],
+      "manual_review_required": false,
+      "redaction_version": 1,
+      "removed_pointers": [],
+      "replaced_pointers": [],
+      "safe_to_commit": true,
+      "scans_run": [
+        "credential",
+        "absolute_path",
+        "email"
+      ],
+      "source_type_known": true,
+      "warnings": []
+    }
+  ],
+  "trace_count": 20
+}

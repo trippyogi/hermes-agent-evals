@@ -1,0 +1,37 @@
+{
+  "adapter": "hermes_eval.trace.adapters.native",
+  "adapter_version": "1",
+  "committable": false,
+  "consent": "owner_generated",
+  "corpus_id": "local-qwen35-9b-zero-toolset-warning-v1",
+  "identity": {
+    "kind": "baseline_id",
+    "value": "local-qwen35-9b-zero-toolset-warning-v1"
+  },
+  "license": "owner-generated",
+  "model_artifact_sha256": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+  "notes": [
+    "Frozen v0.5 warning-treatment cell."
+  ],
+  "privacy_class": "synthetic_task",
+  "provenance": {
+    "hermes_sha": "ed5b9152ce975ada68f0b53a21c4806f29ed0852",
+    "model": "qwen3.5:9b",
+    "server": "Ollama 0.22.1"
+  },
+  "raw_artifact_sha256": "73256190ac96673c5d48f5ae558420be02491da260a3ce11ec7f6767ead067c4",
+  "redaction": null,
+  "retention": "artifact_store",
+  "retrieval": {
+    "location": "results/v0.5-cells/local-qwen35-9b-zero-toolset-warning-v1/trace.json",
+    "method": "local_baseline"
+  },
+  "retrieved_at": "2026-08-21T00:00:00Z",
+  "safe_to_commit": false,
+  "schema": "CorpusManifestV1",
+  "schema_version": 1,
+  "source_class": "local_live_eval",
+  "source_ref": "b92c29752e823227d5bbc0f8d16a5d1d6b7fb53c",
+  "source_repo": "trippyogi/hermes-agent-evals",
+  "trace_schema": "TraceV1"
+}

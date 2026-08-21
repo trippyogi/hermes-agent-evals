@@ -1,0 +1,54 @@
+{
+  "adapter": "hermes_eval.trace.adapters.native",
+  "adapter_version": "1",
+  "committable": true,
+  "consent": "public_artifact",
+  "corpus_id": "core-failures-historical-v1",
+  "identity": {
+    "kind": "repository_ref",
+    "value": "trippyogi/hermes-agent-evals@99f5a57ba2f25f9c8b0ba85620b6cd7f91f97bb0:evals/provenance/expected-historical.json"
+  },
+  "license": "repository-license",
+  "notes": [
+    "Frozen deterministic regression corpus and historical brackets."
+  ],
+  "privacy_class": "synthetic_task",
+  "provenance": {
+    "expected_fixtures": 3,
+    "suite": "core-failures"
+  },
+  "raw_artifact_sha256": "f332daede6cd3ed51e0177129bd5ed5e4c99479fd43e8054ca12df00e3130d85",
+  "redaction": {
+    "corpus_id": "core-failures-historical-v1",
+    "fields_fingerprinted": 0,
+    "fields_removed": 0,
+    "fields_replaced": 0,
+    "findings": [],
+    "fingerprinted_pointers": [],
+    "manual_review_required": false,
+    "redaction_version": 1,
+    "removed_pointers": [],
+    "replaced_pointers": [],
+    "safe_to_commit": true,
+    "scans_run": [
+      "credential",
+      "home_path",
+      "email"
+    ],
+    "source_type_known": true,
+    "warnings": []
+  },
+  "retention": "sanitized_committed",
+  "retrieval": {
+    "location": "evals/provenance/expected-historical.json",
+    "method": "git"
+  },
+  "retrieved_at": "2026-08-21T00:00:00Z",
+  "safe_to_commit": true,
+  "schema": "CorpusManifestV1",
+  "schema_version": 1,
+  "source_class": "frozen_regression",
+  "source_ref": "99f5a57ba2f25f9c8b0ba85620b6cd7f91f97bb0",
+  "source_repo": "trippyogi/hermes-agent-evals",
+  "trace_schema": "TraceV1"
+}

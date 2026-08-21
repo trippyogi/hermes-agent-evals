@@ -1,0 +1,154 @@
+{
+  "all_safe_to_commit": true,
+  "corpora": [
+    {
+      "binding_count": 108,
+      "corpus_id": "toolperf-2026-08-06",
+      "manifest_sha256": "2d353b54329c33ce08d35c4ea304be54f0886b858845f063ef70f15e07064332",
+      "safe_to_commit": true,
+      "trace_count": 108,
+      "traces_sha256": "c9aeae1e9b097952d3c84f541c6bb95c3d451ff7af457a9fb9df91afccac8648"
+    },
+    {
+      "binding_count": 20,
+      "corpus_id": "local-qwen38-zero-toolset-silent-v1",
+      "manifest_sha256": "4a01cb8fc01630cf9a70e4bcd5885c6af89329f0ced58f71ff8b771acbd6c8c1",
+      "safe_to_commit": true,
+      "trace_count": 20,
+      "traces_sha256": "2a33360f94607aae2ffac6647217292f5a962b750a90c213baa9ca5f29e813f2"
+    },
+    {
+      "binding_count": 20,
+      "corpus_id": "local-qwen38-zero-toolset-warning-v1",
+      "manifest_sha256": "c9ebc7dc704d828e65a2e70aaba4a6499fe601abf489f4e81f5cf6f6223f7872",
+      "safe_to_commit": true,
+      "trace_count": 20,
+      "traces_sha256": "74d91153590318927e048084525035934de692495eadb9bb8ac8fa073452002d"
+    },
+    {
+      "binding_count": 20,
+      "corpus_id": "local-qwen35-9b-zero-toolset-silent-v1",
+      "manifest_sha256": "9436d08865f3b43d1345482fc58bc28d708aba8ba7e52c3f1d49d3b46b0d4a19",
+      "safe_to_commit": true,
+      "trace_count": 20,
+      "traces_sha256": "1f45b4f2f26b020511a305c5b5d3dd6d9e352e4c58f7ea323bb8bceaed527ba4"
+    },
+    {
+      "binding_count": 20,
+      "corpus_id": "local-qwen35-9b-zero-toolset-warning-v1",
+      "manifest_sha256": "ef266f1e4703085da92b2dc276e4cff22aef46a12ee96dc406e1b70efb2b29b2",
+      "safe_to_commit": true,
+      "trace_count": 20,
+      "traces_sha256": "019d8b96a95998fccc742f05a163b85b69c4617f7749bb3fb7730e1d2586191d"
+    }
+  ],
+  "gates": {
+    "core-failures-historical-v1": {
+      "artifact_sha256": "f332daede6cd3ed51e0177129bd5ed5e4c99479fd43e8054ca12df00e3130d85",
+      "registered_only": true
+    },
+    "local-qwen35-9b-zero-toolset-silent-v1": {
+      "artifact_sha256": "d69fe39c0317984f5fe1943197eeff07e6c1e00bc06db785570ea52272f75fa9",
+      "behavior_components": {
+        "explicit_capability_failure": 0,
+        "hallucinated_completion": 2,
+        "other_tool_like_text": 7,
+        "plain_failure_other": 1,
+        "remediation_requested": 0,
+        "textual_pseudo_tool_call": 1
+      },
+      "behavior_gap": null,
+      "counts": {
+        "control_runs": 10,
+        "control_success": 10,
+        "control_tool_calls": 11,
+        "control_tool_results": 11,
+        "fault_runs": 10,
+        "fault_success": 0,
+        "fault_tool_calls": 0,
+        "fault_tool_results": 0
+      },
+      "trace_valid": true
+    },
+    "local-qwen35-9b-zero-toolset-warning-v1": {
+      "artifact_sha256": "73256190ac96673c5d48f5ae558420be02491da260a3ce11ec7f6767ead067c4",
+      "behavior_components": {
+        "explicit_capability_failure": 0,
+        "hallucinated_completion": 6,
+        "other_tool_like_text": 4,
+        "plain_failure_other": 0,
+        "remediation_requested": 0,
+        "textual_pseudo_tool_call": 1
+      },
+      "behavior_gap": null,
+      "counts": {
+        "control_runs": 10,
+        "control_success": 10,
+        "control_tool_calls": 10,
+        "control_tool_results": 10,
+        "fault_runs": 10,
+        "fault_success": 0,
+        "fault_tool_calls": 0,
+        "fault_tool_results": 0
+      },
+      "trace_valid": true
+    },
+    "local-qwen38-zero-toolset-silent-v1": {
+      "artifact_sha256": "67f6c3c4b6d334ca69ddd0762bb33f6c51c23a7350d6b202cc51714ad1944f5b",
+      "behavior_components": {
+        "explicit_capability_failure": 0,
+        "hallucinated_completion": 1,
+        "other_tool_like_text": 6,
+        "plain_failure_other": 3,
+        "remediation_requested": 0,
+        "textual_pseudo_tool_call": 0
+      },
+      "behavior_gap": null,
+      "counts": {
+        "control_runs": 10,
+        "control_success": 10,
+        "control_tool_calls": 10,
+        "control_tool_results": 10,
+        "fault_runs": 10,
+        "fault_success": 0,
+        "fault_tool_calls": 0,
+        "fault_tool_results": 0
+      },
+      "trace_valid": true
+    },
+    "local-qwen38-zero-toolset-warning-v1": {
+      "artifact_sha256": "55681609a80439292f17de30de8dacd2ee6821b64aadf6a315bf22f4d85ab0fc",
+      "behavior_components": {
+        "explicit_capability_failure": 0,
+        "hallucinated_completion": 0,
+        "other_tool_like_text": 0,
+        "plain_failure_other": 0,
+        "remediation_requested": 0,
+        "textual_pseudo_tool_call": 0
+      },
+      "behavior_gap": "corrected v0.5 categories are readout-only; transcript omitted from TraceV1",
+      "counts": {
+        "control_runs": 10,
+        "control_success": 10,
+        "control_tool_calls": 10,
+        "control_tool_results": 10,
+        "fault_runs": 10,
+        "fault_success": 0,
+        "fault_tool_calls": 0,
+        "fault_tool_results": 0
+      },
+      "trace_valid": true
+    },
+    "toolperf-2026-08-06": {
+      "archive_sha256": "839dc426ba05342fe1714e1b99d714c89d9206b1f586d866edf1d4e270704d79",
+      "metric_fidelity": 108,
+      "mismatches": 0,
+      "run_identities_unchanged": true,
+      "runs": 108,
+      "source_checksums_unchanged": true
+    }
+  },
+  "sanitizer_version": 1,
+  "schema": "CorpusIngestionReportV1",
+  "toolperf_108_of_108": true
+}

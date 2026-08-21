@@ -114,14 +114,34 @@ class CorpusSanitizer:
 
 
 def scan_sanitized(value: Any) -> list[dict[str, str]]:
-    text = json.dumps(value, sort_keys=True, ensure_ascii=False)
-    scan_text = re.sub(r"<CREDENTIAL_FINGERPRINT_[0-9a-f]{8}>", "", text)
     findings: list[dict[str, str]] = []
-    for pattern in _RESIDUAL:
-        if pattern.search(scan_text):
-            findings.append({"class": "sensitive_pattern", "pattern": pattern.pattern})
-    # Stable email placeholders are allowed; residual addresses are not.
-    scrubbed = re.sub(r"<EMAIL_(?:\d{3}|FINGERPRINT_[0-9a-f]{8})>", "", text)
-    if _EMAIL.search(scrubbed):
-        findings.append({"class": "email", "pattern": _EMAIL.pattern})
+    strings: list[str] = []
+
+    def walk(item: Any) -> None:
+        if isinstance(item, dict):
+            for key, child in item.items():
+                strings.append(str(key))
+                walk(child)
+        elif isinstance(item, list):
+            for child in item:
+                walk(child)
+        elif isinstance(item, str):
+            strings.append(item)
+
+    walk(value)
+    seen: set[tuple[str, str]] = set()
+    for text in strings:
+        scan_text = re.sub(r"<CREDENTIAL_FINGERPRINT_[0-9a-f]{8}>", "", text)
+        for pattern in _RESIDUAL:
+            if pattern.search(scan_text):
+                key = ("sensitive_pattern", pattern.pattern)
+                if key not in seen:
+                    findings.append({"class": key[0], "pattern": key[1]})
+                    seen.add(key)
+        scrubbed = re.sub(r"<EMAIL_(?:\d{3}|FINGERPRINT_[0-9a-f]{8})>", "", text)
+        if _EMAIL.search(scrubbed):
+            key = ("email", _EMAIL.pattern)
+            if key not in seen:
+                findings.append({"class": key[0], "pattern": key[1]})
+                seen.add(key)
     return findings

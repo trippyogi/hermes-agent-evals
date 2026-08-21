@@ -3,6 +3,12 @@
 results/*
 !results/atof-waste-adjudication.json
 !results/atof-waste-validity.json
+!results/corpus/
+!results/corpus/**
+!results/adjudication/
+!results/adjudication/**
+!results/fixture-candidates/
+!results/fixture-candidates/**
 __pycache__/
 *.py[cod]
 *.egg-info/

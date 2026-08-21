@@ -1,0 +1,35 @@
+{
+  "adapter": "hermes_eval.trace.adapters.atof",
+  "adapter_version": "1",
+  "committable": false,
+  "consent": "public_repository",
+  "corpus_id": "toolperf-2026-08-06",
+  "identity": {
+    "kind": "repository_ref",
+    "value": "NousResearch/hermes-toolperf-evals@4e13ec24fafe94f48c9d96f4bdadb6b5577ebc02:results/2026-08-06_rerun/atof-traces.tgz"
+  },
+  "license": "unknown",
+  "notes": [
+    "Raw archive remains read-only in the sibling public checkout."
+  ],
+  "privacy_class": "public_sanitized",
+  "provenance": {
+    "dataset": "hermes-toolperf-evals/2026-08-06_rerun",
+    "expected_runs": 108
+  },
+  "raw_artifact_sha256": "839dc426ba05342fe1714e1b99d714c89d9206b1f586d866edf1d4e270704d79",
+  "redaction": null,
+  "retention": "external_read_only",
+  "retrieval": {
+    "location": "../hermes-toolperf-evals/results/2026-08-06_rerun/atof-traces.tgz",
+    "method": "git"
+  },
+  "retrieved_at": "2026-08-21T00:00:00Z",
+  "safe_to_commit": false,
+  "schema": "CorpusManifestV1",
+  "schema_version": 1,
+  "source_class": "public_atof",
+  "source_ref": "4e13ec24fafe94f48c9d96f4bdadb6b5577ebc02",
+  "source_repo": "NousResearch/hermes-toolperf-evals",
+  "trace_schema": "TraceV1"
+}
