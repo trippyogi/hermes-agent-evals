@@ -10,12 +10,15 @@ It answers:
 Historical validation is the gate: a fixture is useful only if it can
 separate a known-bad Hermes SHA from a known-good/fixed SHA.
 
-v0.4 adds **live behavioral statistics**: Wilson rates, failure-mode
-splits, and efficiency *given success*. The live `zero-toolset-live`
-cell is BLOCKED without `HERMES_EVAL_*` and does not invent rates.
-v0.3 made **TraceV1** the scoreable artifact. v0.3.1 ingested the
-canonical August 6 `hermes-toolperf-evals` ATOF archive (108 runs) as
-an external sanity set. The deterministic canary stays on maintenance.
+**Hermes Regression Canary: READY.** The historical deterministic gate is
+3/3. **Hermes Behavioral Observatory: RESEARCH READY.** TraceV1 is validated,
+the canonical August 6 `hermes-toolperf-evals` ATOF archive re-scores 108/108,
+`textual_tool_protocol_failure` v1 is human-adjudicated, and the frozen v0.5
+matrix contains repeated N=10 cells across two local model routes and two
+immutable Hermes treatments.
+
+v0.6 builds a privacy-safe, production-derived corpus and adjudication
+pipeline. It does not estimate population prevalence or create a leaderboard.
 
 v0.2 proved **portability** (clean clone + GitHub fetch).
 
@@ -49,8 +52,9 @@ imports the August 6 rerun into TraceV1 (`python -m hermes_eval
 ingest-toolperf`) and re-scores it.
 
 This repo is the general regression / behavioral observability layer:
-TraceV1, historical canaries, state invariants, re-scoring, and future
-behavioral corpora. Read-only input; no writes to the Nous toolperf repo.
+TraceV1, historical canaries, state invariants, re-scoring, frozen local
+behavioral corpora, and production-derived corpus intake. Read-only input; no
+writes to the Nous toolperf repo.
 
 Do not optimize raw turn count. Separate outcome, efficiency given
 success, recovery cost, and failure quality. No composite score yet.
@@ -77,6 +81,8 @@ evals/suites/        core-failures
 hermes_eval/         CLI, TraceV1 adapters/scorers
 hermes_eval/trace/   TraceV1 model, adapters, re-score
 reports/evals/       architecture, corpus, taxonomy, results
+results/baselines/   immutable accepted/proposed baseline manifests
+results/v0.5-cells/  frozen controlled-matrix cell artifacts
 .github/workflows/   historical 3/3 on PR; scheduled current canary
 ```
 
@@ -105,7 +111,6 @@ python -m hermes_eval ingest-toolperf
 python -m hermes_eval adjudicate-atof
 python -m hermes_eval analyze
 python -m hermes_eval run --fixture delegate-fallback-runtime --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
-python -m hermes_eval live --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1 --reps 10
 python -m hermes_eval probe-prefix --ref 13ce0c5c675e843af70d19c9e5144249cd51c8d1
 python -m hermes_eval scan-waste evals/fixtures/_waste_samples --out results/wasted-turn-scan.json --label-sheet
 ```
@@ -152,6 +157,9 @@ Optional env:
 - `HERMES_EVAL_ATOF_DIR` — real ATOF traces for waste labeling
 - `HERMES_EVAL_TOOLPERF_RERUN` — path to `results/2026-08-06_rerun` (default: sibling `../hermes-toolperf-evals/results/2026-08-06_rerun`)
 - `HERMES_EVAL_TOOLPERF_CACHE` — extracted ATOF cache (default: `.cache/toolperf-2026-08-06`)
+- `HERMES_EVAL_PROVIDER`, `HERMES_EVAL_MODEL`, `HERMES_EVAL_API_KEY` — process-scoped live route
+- `HERMES_EVAL_BASE_URL` — optional OpenAI-compatible `/v1` base URL
+- `HERMES_EVAL_REPS`, `HERMES_EVAL_TEMPERATURE`, `HERMES_EVAL_REASONING` — live sampling controls
 
 ## Pinned Hermes SHAs
 
@@ -198,11 +206,10 @@ available on that run. There is no single collapsed score.
 ## Tiers
 
 1. Deterministic foundation (runtime identity, pin FSM, protocol)
-2. Controlled model + deterministic env (fake model for zero-toolset;
-   live weak-model arm is separate and may be BLOCKED)
-3. Open-ended — not started
+2. Controlled repeated local-model experiments — **RESEARCH READY**
+3. Production-derived corpus intake and fixture promotion — v0.6 in progress
 
-## Live eval credentials
+## Local OpenAI-compatible live evaluation
 
 Copy `.env.example` values into the **process environment** only:
 
@@ -213,8 +220,24 @@ Copy `.env.example` values into the **process environment** only:
   `HERMES_EVAL_TEMPERATURE` (default 0), `HERMES_EVAL_REASONING`
 
 If those are absent the live runner records `status=BLOCKED` and does
-not invent rates. Known-good makes zero tools **loud**; it does **not**
-restore tools. Report CONTROL and FAULT rates separately, with Wilson
+not invent rates. A dummy non-empty key is sufficient when the local server
+does not enforce authentication; the harness still requires the variable.
+
+```sh
+export HERMES_EVAL_PROVIDER=custom
+export HERMES_EVAL_MODEL='<served-model-id>'
+export HERMES_EVAL_BASE_URL='http://127.0.0.1:<port>/v1'
+export HERMES_EVAL_API_KEY='local-dummy-key'
+export HERMES_EVAL_TEMPERATURE=0
+export HERMES_EVAL_REASONING=none
+python -m hermes_eval live --ref ed5b9152ce975ada68f0b53a21c4806f29ed0852 --reps 1
+```
+
+Before increasing repetitions, verify that CONTROL passes its external oracle,
+Hermes records a structured tool call and matching result, and TraceV1 agrees.
+Validated routes may then run with `--reps 10`. Known-good makes zero tools
+**loud**; it does **not** restore tools. Report CONTROL and FAULT rates
+separately, with Wilson
 intervals. Efficiency is computed only on successful CONTROL runs.
 Fault-arm task success is expected ~0 and is not evidence the salvage
 commit fixed the task.
@@ -224,5 +247,13 @@ commit fixed the task.
 `result.json` plus the cached toolperf ingest. Policy:
 `reports/evals/noise-reliability-policy.md`.
 
-Hermes Behavioral Observatory remains **NOT READY** until a
-production-derived behavioral metric is adjudicated (v0.4.1).
+The canonical controlled comparison is
+`reports/evals/v0.5-controlled-matrix.md`. Metric definitions and validity are
+documented in `reports/evals/textual-tool-protocol-failure.md`,
+`reports/evals/hallucinated-completion.md`, and
+`reports/evals/v0.4.1-atof-waste-validity.md`.
+
+**RESEARCH READY** means the system can run controlled, repeated comparisons,
+measure outcome/conditional efficiency/failure modes, and re-score stored
+traces. It is not representative of all Hermes usage, statistically mature,
+or a general agent-quality benchmark.
