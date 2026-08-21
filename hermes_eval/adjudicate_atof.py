@@ -71,7 +71,7 @@ def _task_outcome(row: dict[str, Any]) -> str:
 
 def walk_atof(path: Path) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
-    starts: list[dict[str, Any]] = []
+    starts: dict[str, dict[str, Any]] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
@@ -87,25 +87,36 @@ def walk_atof(path: Path) -> list[dict[str, Any]]:
         if cat == "llm" and scope == "end":
             events.append({"role": "llm", "name": name, "summary": "model.response"})
         elif cat == "tool" and scope == "start":
-            starts.append(ev)
+            scope_id = str(ev.get("uuid") or "")
+            metadata = ev.get("metadata") if isinstance(ev.get("metadata"), dict) else {}
+            starts[scope_id] = ev
             events.append(
                 {
                     "role": "tool_call",
                     "name": name,
                     "arguments": redact_obj(ev.get("data") if isinstance(ev.get("data"), dict) else None),
+                    "call_id": metadata.get("tool_call_id") or scope_id,
+                    "scope_id": scope_id,
+                    "parallel_group_id": metadata.get("api_request_id") or metadata.get("turn_id"),
                     "summary": _snip(ev.get("data")),
                 }
             )
         elif cat == "tool" and scope == "end":
-            start = starts.pop(0) if starts else {}
+            scope_id = str(ev.get("uuid") or "")
+            start = starts.pop(scope_id, {})
             args = start.get("data") if isinstance(start.get("data"), dict) else None
             data = ev.get("data")
-            status = (ev.get("metadata") or {}).get("status") or "ok"
+            metadata = ev.get("metadata") if isinstance(ev.get("metadata"), dict) else {}
+            start_metadata = start.get("metadata") if isinstance(start.get("metadata"), dict) else {}
+            status = metadata.get("status") or "ok"
             events.append(
                 {
                     "role": "tool_result",
                     "name": name or start.get("name"),
                     "arguments": redact_obj(args) if args is not None else None,
+                    "call_id": metadata.get("tool_call_id") or start_metadata.get("tool_call_id") or scope_id,
+                    "result_id": scope_id,
+                    "parallel_group_id": metadata.get("api_request_id") or start_metadata.get("api_request_id") or metadata.get("turn_id") or start_metadata.get("turn_id"),
                     "ok": status in (None, "ok"),
                     "status": status,
                     "summary": _snip(data),
@@ -126,6 +137,9 @@ def _tool_actions(atof_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "arguments": ev.get("arguments"),
                 "ok": ev.get("ok"),
                 "status": ev.get("status"),
+                "call_id": ev.get("call_id"),
+                "result_id": ev.get("result_id"),
+                "parallel_group_id": ev.get("parallel_group_id"),
                 "result_summary": ev.get("summary"),
                 "call_summary": ev.get("call_summary"),
             }

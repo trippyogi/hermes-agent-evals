@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import json
 import unittest
 from pathlib import Path
 
@@ -14,10 +15,31 @@ from hermes_eval.adjudicate_atof import (
     labels_complete,
     parse_source,
     score_packet,
+    walk_atof,
 )
 
 
 class AdjudicateAtofTests(unittest.TestCase):
+    def test_walk_atof_pairs_parallel_pkg_reads_by_scope_identity(self):
+        rows = [
+            {"kind":"scope","category":"tool","scope_category":"start","uuid":"a","name":"read_file","data":{"path":"pkg_a"},"metadata":{"tool_call_id":"call-a","api_request_id":"turn"}},
+            {"kind":"scope","category":"tool","scope_category":"start","uuid":"b","name":"read_file","data":{"path":"pkg_b"},"metadata":{"tool_call_id":"call-b","api_request_id":"turn"}},
+            {"kind":"scope","category":"tool","scope_category":"start","uuid":"c","name":"read_file","data":{"path":"pkg_c"},"metadata":{"tool_call_id":"call-c","api_request_id":"turn"}},
+            {"kind":"scope","category":"tool","scope_category":"end","uuid":"b","name":"read_file","data":"B","metadata":{"tool_call_id":"call-b","status":"ok","api_request_id":"turn"}},
+            {"kind":"scope","category":"tool","scope_category":"end","uuid":"a","name":"read_file","data":"A","metadata":{"tool_call_id":"call-a","status":"ok","api_request_id":"turn"}},
+            {"kind":"scope","category":"tool","scope_category":"end","uuid":"c","name":"read_file","data":"C","metadata":{"tool_call_id":"call-c","status":"ok","api_request_id":"turn"}},
+        ]
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "parallel.atof.jsonl"
+            path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            events = walk_atof(path)
+        results = {event["call_id"]: event for event in events if event["role"] == "tool_result"}
+        self.assertEqual(results["call-a"]["arguments"], {"path": "pkg_a"})
+        self.assertEqual(results["call-b"]["arguments"], {"path": "pkg_b"})
+        self.assertEqual(results["call-c"]["arguments"], {"path": "pkg_c"})
+        self.assertEqual({event["parallel_group_id"] for event in results.values()}, {"turn"})
+
     def test_parse_source_keeps_model_slash(self):
         model, arm, run_id = parse_source(
             "qwen/qwen3-coder-30b-a3b-instruct/fixes/err_big_output-r0"

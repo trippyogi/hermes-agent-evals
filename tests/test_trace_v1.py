@@ -185,6 +185,25 @@ class TraceV1Tests(unittest.TestCase):
         for key in ("llm", "tools", "errs", "retries", "kb"):
             self.assertEqual(scored[key], ref[key], key)
 
+    def test_atof_parallel_same_tool_keeps_call_identity_and_arguments(self):
+        rows = [
+            {"kind":"scope","category":"tool","scope_category":"start","uuid":"scope-a","name":"read_file","data":{"path":"pkg_a"},"metadata":{"tool_call_id":"call-a","api_request_id":"turn-1"}},
+            {"kind":"scope","category":"tool","scope_category":"start","uuid":"scope-b","name":"read_file","data":{"path":"pkg_b"},"metadata":{"tool_call_id":"call-b","api_request_id":"turn-1"}},
+            {"kind":"scope","category":"tool","scope_category":"end","uuid":"scope-b","name":"read_file","data":"B","metadata":{"tool_call_id":"call-b","status":"ok","api_request_id":"turn-1"}},
+            {"kind":"scope","category":"tool","scope_category":"end","uuid":"scope-a","name":"read_file","data":"A","metadata":{"tool_call_id":"call-a","status":"ok","api_request_id":"turn-1"}},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "parallel.atof.jsonl"
+            path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            trace = emit_atof(path)
+        calls = {event["payload"]["canonical_call_id"]: event for event in events_of(trace, type="tool.call")}
+        results = events_of(trace, type="tool.result")
+        self.assertEqual(calls["call-a"]["payload"]["arguments"], {"path": "pkg_a"})
+        self.assertEqual(calls["call-b"]["payload"]["arguments"], {"path": "pkg_b"})
+        linked = {event["payload"]["canonical_call_id"]: event["parent_id"] for event in results}
+        self.assertEqual(linked["call-a"], calls["call-a"]["id"])
+        self.assertEqual(linked["call-b"], calls["call-b"]["id"])
+
     def test_live_blocked_no_synthetic_rates(self):
         result = {
             "fixture": "zero-toolset-live",

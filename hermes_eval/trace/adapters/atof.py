@@ -54,7 +54,10 @@ def emit_atof(
     )
     b.initial_state = {"path": str(src).replace("\\", "/"), "event_count_in": len(events_in)}
     open_llm: str | None = None
-    open_tool: dict[str, str] = {}
+    # ATOF scope start/end records share a UUID.  Keying by tool name loses
+    # identity when parallel calls use the same tool, which in turn creates
+    # false repeated-action episodes.  Keep the canonical scope/call identity.
+    open_tool: dict[str, dict[str, Any]] = {}
     llm = tools = errs = retries = 0
     total_result_bytes = 0
     last_err_tool = None
@@ -74,15 +77,21 @@ def emit_atof(
         elif kind == "scope" and cat == "tool" and scope == "start":
             data = ev.get("data")
             args = data if isinstance(data, dict) else None
+            scope_id = str(ev.get("uuid") or "")
+            metadata = ev.get("metadata") if isinstance(ev.get("metadata"), dict) else {}
+            call_id = str(metadata.get("tool_call_id") or scope_id)
             eid = b.event(
                 "tool.call",
                 {
                     "name": name,
                     "arguments": redact_obj(args) if args is not None else None,
                     "arguments_hash": _hash_args(args),
+                    "canonical_call_id": call_id,
+                    "source_scope_id": scope_id or None,
+                    "parallel_group_id": metadata.get("api_request_id") or metadata.get("turn_id"),
                 },
             )
-            open_tool[str(name)] = eid
+            open_tool[scope_id] = {"event_id": eid, "call_id": call_id, "name": name}
             tools += 1
             if last_err_tool == name:
                 retries += 1
@@ -104,6 +113,10 @@ def emit_atof(
                 last_err_tool = name
             else:
                 last_err_tool = None
+            scope_id = str(ev.get("uuid") or "")
+            metadata = ev.get("metadata") if isinstance(ev.get("metadata"), dict) else {}
+            opened = open_tool.pop(scope_id, {})
+            call_id = str(metadata.get("tool_call_id") or opened.get("call_id") or scope_id)
             b.event(
                 "tool.result",
                 {
@@ -111,9 +124,13 @@ def emit_atof(
                     "status": status,
                     "ok": not err,
                     "result_bytes": result_bytes,
+                    "result_hash": hashlib.sha256(ds.encode("utf-8")).hexdigest(),
                     "body_looks_like_error": body_looks_like_error,
+                    "canonical_call_id": call_id,
+                    "source_scope_id": scope_id or None,
+                    "parallel_group_id": metadata.get("api_request_id") or metadata.get("turn_id"),
                 },
-                parent_id=open_tool.get(str(name)),
+                parent_id=opened.get("event_id"),
             )
             total_result_bytes += result_bytes
         elif ev.get("type") in {"tool", "tool_call"}:

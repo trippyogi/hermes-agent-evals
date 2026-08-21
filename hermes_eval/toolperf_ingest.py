@@ -282,23 +282,27 @@ def ingest(rerun: Path | None = None) -> dict[str, Any]:
 
 def _tool_events(trace: dict[str, Any]) -> list[dict[str, Any]]:
     events = []
-    pending = None
+    calls: dict[str, dict[str, Any]] = {}
     for ev in trace.get("events") or []:
         kind = ev.get("type")
         payload = ev.get("payload") or {}
         if kind == "tool.call":
-            pending = payload
+            calls[str(ev.get("id"))] = payload
         elif kind == "tool.result":
+            pending = calls.get(str(ev.get("parent_id"))) or {}
             events.append(
                 {
                     "type": "tool",
-                    "name": payload.get("name") or (pending or {}).get("name"),
+                    "name": payload.get("name") or pending.get("name"),
                     "status": "error" if payload.get("ok") is False else "ok",
-                    "arguments": (pending or {}).get("arguments"),
-                    "arguments_hash": (pending or {}).get("arguments_hash"),
+                    "arguments": pending.get("arguments"),
+                    "arguments_hash": pending.get("arguments_hash"),
+                    "call_id": payload.get("canonical_call_id") or pending.get("canonical_call_id"),
+                    "result_id": payload.get("source_scope_id"),
+                    "parallel_group_id": payload.get("parallel_group_id") or pending.get("parallel_group_id"),
+                    "result_hash": payload.get("result_hash"),
                 }
             )
-            pending = None
     return events
 
 
