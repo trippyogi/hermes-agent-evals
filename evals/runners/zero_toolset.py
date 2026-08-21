@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from hermes_eval.isolate import isolated_env, write_isolated_home
+from hermes_eval.isolate import applied_isolated_env, write_isolated_home
 from hermes_eval.redact import redact_obj
 
 KNOWN = {
@@ -117,7 +117,9 @@ def _run_arm(
     workspace: Path,
 ) -> dict:
     nonce = f"EVAL-{uuid.uuid4().hex[:12]}"
-    proof = workspace / "proof.txt"
+    # One canonical target is shared by dispatch, the external oracle, and
+    # result metadata. Never reconstruct it from cwd or tool output.
+    proof = (workspace / "proof.txt").resolve()
     warnings = _warnings(hermes_root, platform_toolsets)
     schemas = _resolve_tool_names(hermes_root, platform_toolsets, "cli")
     write_available = "write_file" in schemas
@@ -193,7 +195,7 @@ def _run_arm(
         "invalid_tool_calls": invalid,
         "textual_pseudo_tool_call": text_as_tool,
         "proof_exists": proof_exists,
-        "proof_path": str(proof) if proof_exists else None,
+        "proof_path": str(proof),
     }
 
 
@@ -208,7 +210,10 @@ def run(hermes_root: Path, hermes_sha: str, out_dir: Path) -> dict:
     }
     (workspace / "control").mkdir(exist_ok=True)
     (workspace / "fault").mkdir(exist_ok=True)
-    with isolated_env(workspace):
+    # This runner imports Hermes in-process. Apply (rather than merely build)
+    # the isolated environment so product config cannot select a namespace
+    # invisible to the host-side proof oracle.
+    with applied_isolated_env(workspace):
         control = _run_arm(
             hermes_root=hermes_root,
             arm="control",

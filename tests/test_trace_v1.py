@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -12,8 +14,9 @@ sys.path.insert(0, str(REPO))
 
 from hermes_eval.trace.adapters.atof import emit_atof
 from hermes_eval.trace.adapters.native import emit_native
-from hermes_eval.trace.model import TRACE_VERSION, TraceBuilder, validate_trace
+from hermes_eval.trace.model import TRACE_VERSION, TraceBuilder, events_of, validate_trace
 from hermes_eval.trace.rescore import result_from_trace, score_trace
+from evals.runners.zero_toolset_live import _tool_events_from_home
 
 
 def _zero_result(*, warning: bool, child_good: bool = True) -> dict:
@@ -195,6 +198,110 @@ class TraceV1Tests(unittest.TestCase):
         self.assertFalse(scored["success"])
         self.assertIsNone(emit_native(result)["final_state"].get("rates"))
         self.assertFalse(scored["metrics"].get("synthetic_substitution"))
+
+    def test_live_canonical_tool_call_and_result_linkage(self):
+        result = {
+            "fixture": "zero-toolset-live",
+            "status": "RUN",
+            "success": True,
+            "notes": [],
+            "extras": {
+                "reps": 1,
+                "control_runs": [{
+                    "arm": "control",
+                    "task_success": True,
+                    "proof_exists": True,
+                    "tool_schema_count": 1,
+                    "actual_tool_calls": 1,
+                    "tool_events": [{
+                        "source": "hermes_session_db",
+                        "call_id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "/tmp/proof.txt", "content": "nonce"},
+                        "status": "ok",
+                        "result": {"verified": True, "bytes_written": 5},
+                        "call_timestamp": 1.0,
+                        "result_timestamp": 2.0,
+                    }],
+                }],
+                "fault_runs": [{
+                    "arm": "fault",
+                    "task_success": False,
+                    "proof_exists": False,
+                    "tool_schema_count": 0,
+                    "actual_tool_calls": 0,
+                    "tool_events": [],
+                }],
+            },
+        }
+        trace = emit_native(result)
+        calls = events_of(trace, type="tool.call")
+        results = events_of(trace, type="tool.result")
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(calls[0]["payload"]["name"], "write_file")
+        self.assertEqual(calls[0]["payload"]["arguments"]["content"], "nonce")
+        self.assertEqual(results[0]["parent_id"], calls[0]["id"])
+        self.assertTrue(results[0]["payload"]["result"]["verified"])
+        self.assertEqual(events_of(trace, type="tool.call", span_id="fault:0"), [])
+        self.assertEqual(events_of(trace, type="tool.result", span_id="fault:0"), [])
+
+    def test_live_reads_canonical_hermes_session_db(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            db = sqlite3.connect(home / "state.db")
+            db.execute(
+                "CREATE TABLE sessions (id TEXT PRIMARY KEY, tool_call_count INTEGER)"
+            )
+            db.execute(
+                "CREATE TABLE messages (id INTEGER PRIMARY KEY, role TEXT, content TEXT, "
+                "tool_call_id TEXT, tool_calls TEXT, tool_name TEXT, timestamp REAL, "
+                "active INTEGER DEFAULT 1)"
+            )
+            db.execute("INSERT INTO sessions VALUES ('s1', 1)")
+            db.execute(
+                "INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    1,
+                    "assistant",
+                    "",
+                    None,
+                    json.dumps([{
+                        "id": "call-1",
+                        "type": "function",
+                        "function": {
+                            "name": "write_file",
+                            "arguments": json.dumps({"path": "/tmp/proof.txt", "content": "nonce"}),
+                        },
+                    }]),
+                    None,
+                    1.0,
+                    1,
+                ),
+            )
+            db.execute(
+                "INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    2,
+                    "tool",
+                    json.dumps({"verified": True, "bytes_written": 5}),
+                    "call-1",
+                    None,
+                    "write_file",
+                    2.0,
+                    1,
+                ),
+            )
+            db.commit()
+            db.close()
+            record = _tool_events_from_home(home)
+        self.assertEqual(record["source"], "hermes_session_db")
+        self.assertEqual(record["call_count"], 1)
+        self.assertEqual(record["result_count"], 1)
+        self.assertEqual(record["session_tool_call_count"], 1)
+        self.assertTrue(record["counts_agree"])
+        self.assertEqual(record["events"][0]["name"], "write_file")
+        self.assertTrue(record["events"][0]["result"]["verified"])
 
     def test_historical_shape_from_traces(self):
         pairs = [

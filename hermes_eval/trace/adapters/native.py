@@ -420,20 +420,35 @@ def _live_row(b: TraceBuilder, row: dict[str, Any], span: str, arm: str) -> None
             "tool.call",
             {
                 "name": ev.get("name"),
-                "arguments_hash": ev.get("arguments_hash"),
+                "arguments": ev.get("arguments"),
+                "canonical_call_id": ev.get("call_id"),
+                "source": ev.get("source"),
             },
             span_id=span,
+            ts=str(ev.get("call_timestamp")) if ev.get("call_timestamp") is not None else None,
         )
-        b.event(
-            "tool.result",
-            {
-                "name": ev.get("name"),
-                "status": ev.get("status"),
-                "ok": str(ev.get("status") or "").lower() not in {"error", "failed"},
-            },
-            span_id=span,
-            parent_id=call_id,
-        )
+        # Legacy synthetic/native rows represented a completed call as one
+        # aggregate event without a result payload. Canonical live rows carry
+        # the key explicitly; there, None truthfully means no result record.
+        if "result" not in ev or ev.get("result") is not None:
+            b.event(
+                "tool.result",
+                {
+                    "name": ev.get("name"),
+                    "status": ev.get("status"),
+                    "ok": str(ev.get("status") or "").lower() not in {"error", "failed"},
+                    "result": ev.get("result"),
+                    "canonical_call_id": ev.get("call_id"),
+                    "source": ev.get("source"),
+                },
+                span_id=span,
+                parent_id=call_id,
+                ts=(
+                    str(ev.get("result_timestamp"))
+                    if ev.get("result_timestamp") is not None
+                    else None
+                ),
+            )
     if row.get("diagnostic_emitted"):
         b.diagnostic("empty-toolset", "live diagnostic", span_id=span)
     if row.get("proof_path"):

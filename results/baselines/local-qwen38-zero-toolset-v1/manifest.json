@@ -1,0 +1,86 @@
+{
+  "experiment_id": "local-qwen38-zero-toolset-v1",
+  "frozen_at": "2026-08-20T23:13:03Z",
+  "immutable": true,
+  "fixture": {
+    "id": "zero-toolset-live",
+    "version": 2,
+    "path": "evals/fixtures/zero-toolset-live.yaml",
+    "sha256": "86fed6d721b5f0ff6b1c315a76981d2b18f59c0ad26b9cf5d7af13bfcb7c747a"
+  },
+  "harness": {
+    "git_sha": "4c762a67b96c462cd39e828a4b14fcd519c6c137",
+    "dirty": true,
+    "binary_diff_sha256": "e67345a0acceba03a815c46ae2568e118ddbee6216a167642cfdea34c07ae114"
+  },
+  "hermes": {
+    "git_sha": "ed5b9152ce975ada68f0b53a21c4806f29ed0852"
+  },
+  "cell": {
+    "n_control": 10,
+    "n_fault": 10,
+    "temperature": 0.0,
+    "reasoning": "none",
+    "control_task_success": 10,
+    "fault_task_success": 0,
+    "control_tool_calls": 10,
+    "control_tool_results": 10,
+    "fault_tool_calls": 0,
+    "fault_tool_results": 0,
+    "infra_startup_failures": 0,
+    "trace_runner_disagreements": 0
+  },
+  "behavior": {
+    "fault": {
+      "textual_tool_protocol_failure": [],
+      "other_tool_like_text": ["fault:0", "fault:1", "fault:2"],
+      "hallucinated_completion": ["fault:3", "fault:5", "fault:7"],
+      "explicit_capability_failure": [],
+      "remediation_or_user_request": [],
+      "plain_failure_other": ["fault:4", "fault:6", "fault:8", "fault:9"]
+    },
+    "control_textual_tool_protocol_failure": []
+  },
+  "host": {
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "Linux 7.0.0-28-generic x86_64",
+    "gpu": "NVIDIA GeForce RTX 5090 32607 MiB",
+    "driver": "595.71.05",
+    "cuda_reported_by_driver": "13.2"
+  },
+  "server": {
+    "implementation": "llama.cpp llama-server",
+    "build_info": "b10423-a94d563ed",
+    "endpoint": "http://127.0.0.1:18081/v1",
+    "served_model_id": "qwen3.8:27b-ud-q4-k-xl",
+    "context_length": 65536,
+    "parallel_slots": 1,
+    "reasoning": "off",
+    "flash_attention": true,
+    "gpu_layers": 99,
+    "jinja_chat_template": true,
+    "tool_call_configuration": "GGUF Jinja template; supports_tools=true; supports_object_arguments=true; no explicit --tool-call-parser flag recorded"
+  },
+  "model": {
+    "artifact": "/srv/agentlab/models/gguf/qwen3.8-27b/Qwen3.8-27B-UD-Q4_K_XL.gguf",
+    "artifact_sha256": "bee238bbeb3dc0a34bde4d0dedbaee1f98c009e8bb4226f03070054c12fb1372",
+    "artifact_size_bytes": 17923394624,
+    "parameters": 27320697856,
+    "format": "GGUF",
+    "quantization": "UD-Q4_K_XL; server reports Q4_K - Small"
+  },
+  "artifacts": {
+    "result": {
+      "path": "results/20260820T225846Z/zero-toolset-live/ed5b9152ce975ada68f0b53a21c4806f29ed0852/result.json",
+      "sha256": "faa085f5fe96aef802bd589e54986d966dfd168efa2c48b24dfa4fea3f287935"
+    },
+    "trace": {
+      "path": "results/20260820T225846Z/zero-toolset-live/ed5b9152ce975ada68f0b53a21c4806f29ed0852/trace.json",
+      "sha256": "55681609a80439292f17de30de8dacd2ee6821b64aadf6a315bf22f4d85ab0fc"
+    }
+  },
+  "not_recorded": [
+    "host CUDA toolkit version independent of driver compatibility",
+    "request sampling parameters other than temperature and reasoning"
+  ]
+}

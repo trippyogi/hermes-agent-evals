@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import statistics
 import subprocess
 import sys
@@ -154,32 +155,105 @@ def _load_usage(path: Path) -> dict:
         return {}
 
 
-def _tool_events_from_home(home: Path) -> list[dict]:
-    """Best-effort structured tool events from isolated session artifacts."""
-    found: list[dict] = []
-    for path in home.rglob("*.json"):
-        if path.name in {"config.yaml", "usage.json"}:
-            continue
+def _json_value(value: object) -> object:
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return value
+
+
+def _tool_status(content: object) -> str:
+    payload = _json_value(content)
+    if isinstance(payload, dict):
+        explicit = str(payload.get("status") or "").lower()
+        if explicit in {"error", "failed", "failure"} or payload.get("error"):
+            return "error"
+        if explicit:
+            return explicit
+    text = str(content or "").lstrip().lower()
+    return "error" if text.startswith(("error", "failed", "exception")) else "ok"
+
+
+def _tool_events_from_home(home: Path) -> dict:
+    """Read canonical tool calls/results from the isolated Hermes session DB.
+
+    The filesystem proof remains the task-success oracle. It is deliberately
+    not used to infer execution events.
+    """
+    calls: list[dict] = []
+    by_call_id: dict[str, dict] = {}
+    result_count = 0
+    session_count = 0
+    db_paths = sorted(home.rglob("state.db"))
+    for path in db_paths:
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        events = payload.get("events") if isinstance(payload, dict) else None
-        if not isinstance(events, list):
-            continue
-        for ev in events:
-            if not isinstance(ev, dict):
+            conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+            conn.row_factory = sqlite3.Row
+            tables = {
+                str(row[0])
+                for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            }
+            if "messages" not in tables:
+                conn.close()
                 continue
-            if ev.get("type") in {"tool", "tool_call"} or ev.get("role") == "tool":
-                args = ev.get("arguments") or ev.get("args")
-                found.append(
-                    {
-                        "name": ev.get("name") or ev.get("tool"),
-                        "status": ev.get("status") or "ok",
-                        "arguments": args,
-                    }
+            if "sessions" in tables:
+                session_count += sum(
+                    int(row[0] or 0)
+                    for row in conn.execute("SELECT tool_call_count FROM sessions")
                 )
-    return found
+            rows = conn.execute(
+                "SELECT id, role, content, tool_call_id, tool_calls, tool_name, timestamp "
+                "FROM messages WHERE active = 1 ORDER BY id"
+            ).fetchall()
+            conn.close()
+        except (sqlite3.Error, OSError):
+            continue
+        for row in rows:
+            if row["role"] == "assistant" and row["tool_calls"]:
+                decoded = _json_value(row["tool_calls"])
+                if not isinstance(decoded, list):
+                    continue
+                for raw_call in decoded:
+                    if not isinstance(raw_call, dict):
+                        continue
+                    function = raw_call.get("function") or {}
+                    if not isinstance(function, dict):
+                        function = {}
+                    call_id = str(raw_call.get("call_id") or raw_call.get("id") or "")
+                    event = {
+                        "source": "hermes_session_db",
+                        "call_id": call_id or None,
+                        "name": function.get("name") or raw_call.get("name"),
+                        "arguments": _json_value(function.get("arguments") or raw_call.get("arguments")),
+                        "call_timestamp": row["timestamp"],
+                        "status": "missing_result",
+                        "result": None,
+                        "result_timestamp": None,
+                    }
+                    calls.append(event)
+                    if call_id:
+                        by_call_id[call_id] = event
+            elif row["role"] == "tool":
+                result_count += 1
+                call_id = str(row["tool_call_id"] or "")
+                event = by_call_id.get(call_id)
+                if event is None:
+                    continue
+                event["status"] = _tool_status(row["content"])
+                event["result"] = _json_value(row["content"])
+                event["result_timestamp"] = row["timestamp"]
+                if not event.get("name"):
+                    event["name"] = row["tool_name"]
+    return {
+        "source": "hermes_session_db" if db_paths else None,
+        "events": calls,
+        "call_count": len(calls),
+        "result_count": result_count,
+        "session_tool_call_count": session_count,
+        "counts_agree": len(calls) == result_count == session_count,
+    }
 
 
 def _run_arm(
@@ -303,7 +377,8 @@ def _run_arm(
             infra_attempt=infra_attempt + 1,
         )
     proof_exists = proof.is_file() and nonce in proof.read_text(encoding="utf-8", errors="replace")
-    tool_events = _tool_events_from_home(home)
+    tool_record = _tool_events_from_home(home)
+    tool_events = tool_record["events"]
     retry = retries_after_error(tool_events)
     tool_total = len(tool_events)
     tool_fail = sum(1 for e in tool_events if str(e.get("status") or "").lower() in {"error", "failed"})
@@ -332,9 +407,23 @@ def _run_arm(
         "failed_tool_calls": tool_fail,
         "successful_tool_calls": tool_ok,
         "tool_events": [
-            {"name": e.get("name"), "status": e.get("status"), "arguments_hash": None}
+            {
+                "source": e.get("source"),
+                "call_id": e.get("call_id"),
+                "name": e.get("name"),
+                "arguments": e.get("arguments"),
+                "status": e.get("status"),
+                "result": e.get("result"),
+                "call_timestamp": e.get("call_timestamp"),
+                "result_timestamp": e.get("result_timestamp"),
+            }
             for e in tool_events
         ],
+        "tool_event_source": tool_record.get("source"),
+        "canonical_tool_call_count": tool_record.get("call_count"),
+        "canonical_tool_result_count": tool_record.get("result_count"),
+        "session_tool_call_count": tool_record.get("session_tool_call_count"),
+        "tool_event_counts_agree": tool_record.get("counts_agree"),
         "retries_after_error": retry["retries_after_error"],
         "identical_retries_after_error": retry["identical_retries_after_error"],
         "turns": usage.get("api_calls"),

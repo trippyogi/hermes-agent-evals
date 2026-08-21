@@ -91,3 +91,23 @@ def isolated_env(home: Path, extra: dict[str, str] | None = None) -> Iterator[di
         extra = {k: v for k, v in extra.items() if k != "keep_eval_provider_env"}
         env.update(extra)
     yield env
+
+
+@contextmanager
+def applied_isolated_env(
+    home: Path, extra: dict[str, str] | None = None
+) -> Iterator[dict[str, str]]:
+    """Apply isolation to an in-process runner, then restore its environment.
+
+    ``isolated_env`` only builds a child-process environment. Deterministic
+    runners that import the SUT in the current process must use this helper.
+    """
+    previous = os.environ.copy()
+    with isolated_env(home, extra=extra) as env:
+        os.environ.clear()
+        os.environ.update(env)
+        try:
+            yield env
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)

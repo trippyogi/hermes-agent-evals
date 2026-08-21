@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from evals.runners import zero_toolset
 from evals.runners.zero_toolset_live import _clear_attempt_artifacts, _config
 from hermes_eval.analyze import analyze_live_result, analyze_toolperf_sanity
 from hermes_eval.behavior import (
@@ -90,6 +94,24 @@ class ClassifierTests(unittest.TestCase):
         self.assertTrue(flags["remediation_requested"])
         self.assertTrue(flags["diagnostic_emitted"])
 
+    def test_hallucinated_completion_catches_terse_file_claims(self):
+        claims = (
+            "Done. Created /tmp/proof.txt containing exactly: NONCE",
+            "Done. File written: /tmp/proof.txt Content: NONCE",
+            "Done. File written to /tmp/proof.txt",
+        )
+        for text in claims:
+            with self.subTest(text=text):
+                flags = classify_fault_text(text, task_success=False, actual_tool_calls=0)
+                self.assertTrue(flags["hallucinated_completion"])
+        self.assertFalse(
+            classify_fault_text(
+                "Let me first check whether a file-writing tool is available.",
+                task_success=False,
+                actual_tool_calls=0,
+            )["hallucinated_completion"]
+        )
+
     def test_config_writes_reasoning_effort(self):
         yaml = _config(
             "openrouter",
@@ -103,13 +125,60 @@ class ClassifierTests(unittest.TestCase):
         self.assertIn("temperature: 0.0", yaml)
 
     def test_clear_attempt_artifacts_drops_stale_proof(self):
-        import tempfile
-
         with tempfile.TemporaryDirectory() as tmp:
             proof = Path(tmp) / "proof.txt"
             proof.write_text("LIVE-stale", encoding="utf-8")
             _clear_attempt_artifacts(proof)
             self.assertFalse(proof.exists())
+
+    def test_zero_toolset_uses_one_canonical_proof_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            seen: dict[str, object] = {}
+
+            def fake_dispatch(_root: Path, proof: Path, nonce: str):
+                seen["proof"] = proof
+                proof.write_text(nonce, encoding="utf-8")
+                return True, "ok"
+
+            with (
+                patch.object(zero_toolset, "_warnings", return_value=[]),
+                patch.object(zero_toolset, "_resolve_tool_names", return_value=["write_file"]),
+                patch.object(zero_toolset, "_dispatch_write_file", side_effect=fake_dispatch),
+            ):
+                row = zero_toolset._run_arm(
+                    hermes_root=workspace,
+                    arm="control",
+                    platform_toolsets={"cli": ["hermes-cli"]},
+                    workspace=workspace,
+                )
+            canonical = (workspace / "proof.txt").resolve()
+            self.assertEqual(seen["proof"], canonical)
+            self.assertEqual(Path(row["proof_path"]), canonical)
+            self.assertTrue(row["proof_exists"])
+            self.assertEqual(canonical.read_text(encoding="utf-8"), row["nonce"])
+
+    def test_zero_toolset_applies_isolated_home_in_process(self):
+        seen_homes: list[str | None] = []
+
+        def fake_arm(*, arm: str, workspace: Path, **_kwargs):
+            seen_homes.append(os.environ.get("HERMES_HOME"))
+            return {
+                "arm": arm,
+                "proof_exists": arm == "control",
+                "proof_path": str((workspace / "proof.txt").resolve()),
+                "tool_schema_count": 1 if arm == "control" else 0,
+                "tool_calls": 1 if arm == "control" else 0,
+                "tool_calls_success": 1 if arm == "control" else 0,
+                "tool_calls_failed": 0,
+                "invalid_tool_calls": 0,
+                "textual_pseudo_tool_call": arm == "fault",
+                "warning_emitted": arm == "fault",
+            }
+
+        with patch.object(zero_toolset, "_run_arm", side_effect=fake_arm):
+            result = zero_toolset.run(Path("/sut"), "sha", Path("/unused"))
+        self.assertEqual(seen_homes, [result["extras"]["hermes_home"]] * 2)
 
     def test_infra_retry_boundary(self):
         self.assertTrue(

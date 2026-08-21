@@ -41,6 +41,8 @@ HALLUCINATION_RE = re.compile(
     r"(i('ve| have)? (created|written|saved|wrote)|"
     r"successfully (created|wrote|saved|wrote)|"
     r"(file|proof) (has been|was) (created|written|saved)|"
+    r"\bdone\b.{0,80}\b(created|written|wrote|saved)\b|"
+    r"\bfile (written|created|saved)( to)?\b|"
     r"(task|request) (is )?(complete|done)|"
     r"wrote (the )?(file|proof))",
     re.IGNORECASE,
