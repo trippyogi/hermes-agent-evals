@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trippyogi/hermes-agent-evals/integrations/gitworthy/eval-opportunity-v1.schema.json",
+  "title": "EvalOpportunityV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "schema_version", "target", "evaluated_at", "issue_shape", "evalability", "recommended_contribution_mode", "required_checks", "limitations"],
+  "properties": {
+    "schema": {"const": "EvalOpportunityV1"}, "schema_version": {"const": 1},
+    "target": {"type": "string", "minLength": 1}, "evaluated_at": {"type": "string", "format": "date-time"},
+    "issue_shape": {"enum": ["bug", "regression", "performance", "state", "provider", "platform", "other"]},
+    "evalability": {"type": "object", "additionalProperties": false,
+      "required": ["score", "reasons", "deterministic_oracle", "historical_bracket_available", "existing_fixture_match", "trace_source_available", "live_model_required", "cross_platform_required", "estimated_repro_minutes", "estimated_run_cost"],
+      "properties": {
+        "score": {"type": "number", "minimum": 0, "maximum": 1}, "reasons": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "deterministic_oracle": {"type": "boolean"}, "historical_bracket_available": {"type": "boolean"}, "existing_fixture_match": {"type": ["string", "null"]},
+        "trace_source_available": {"type": "boolean"}, "live_model_required": {"type": "boolean"}, "cross_platform_required": {"type": "boolean"},
+        "estimated_repro_minutes": {"type": ["integer", "null"], "minimum": 0}, "estimated_run_cost": {"type": ["number", "null"], "minimum": 0}
+      }
+    },
+    "recommended_contribution_mode": {"enum": ["BUILD", "REVIEW", "SALVAGE", "REPRODUCE", "EVAL", "PASS"]},
+    "required_checks": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "limitations": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+  }
+}

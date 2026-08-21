@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trippyogi/hermes-agent-evals/evals/schemas/corpus-manifest-v1.schema.json",
+  "title": "CorpusManifestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "corpus_id", "source_class", "consent", "privacy_class", "retrieved_at", "raw_artifact_sha256", "adapter", "adapter_version", "trace_schema", "retention", "committable", "identity", "retrieval", "notes"],
+  "properties": {
+    "schema": {"const": "CorpusManifestV1"},
+    "schema_version": {"const": 1},
+    "corpus_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+    "source_class": {"enum": ["public_atof", "local_live_eval", "sanitized_session_export", "public_github", "local_reproduction"]},
+    "source_repo": {"type": ["string", "null"]},
+    "source_ref": {"type": ["string", "null"]},
+    "license": {"type": ["string", "null"]},
+    "consent": {"enum": ["public_repository", "owner_generated", "explicit_sanitized_export", "public_artifact"]},
+    "privacy_class": {"enum": ["public_sanitized", "synthetic_task", "private_sanitized", "public_issue"]},
+    "retrieved_at": {"type": "string", "format": "date-time"},
+    "raw_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_artifact_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "adapter": {"type": "string", "minLength": 1},
+    "adapter_version": {"type": "string", "minLength": 1},
+    "trace_schema": {"const": "TraceV1"},
+    "retention": {"enum": ["external_read_only", "sanitized_committed", "local_only", "artifact_store"]},
+    "committable": {"type": "boolean"},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {"kind": {"enum": ["repository_ref", "artifact_sha256", "baseline_id"]}, "value": {"type": "string", "minLength": 1}}
+    },
+    "retrieval": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "location"],
+      "properties": {"method": {"enum": ["git", "archive", "local_baseline", "explicit_export"]}, "location": {"type": ["string", "null"]}}
+    },
+    "redaction": {"type": ["object", "null"]},
+    "provenance": {"type": ["object", "null"]},
+    "notes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "allOf": [
+    {"if": {"properties": {"source_class": {"const": "public_atof"}}}, "then": {"required": ["source_repo", "source_ref"]}},
+    {"if": {"properties": {"source_class": {"const": "local_live_eval"}}}, "then": {"required": ["model_artifact_sha256", "provenance"]}}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trippyogi/hermes-agent-evals/integrations/gitworthy/eval-evidence-v1.schema.json",
+  "title": "EvalEvidenceV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "schema_version", "target", "evaluated_at", "decision_id", "gitworthy_run_id", "hermes_baseline_sha", "candidate_sha", "fixture_id", "fixture_digest", "result", "oracle", "frame_conditions", "trace_bundle_sha256", "platforms", "limitations"],
+  "properties": {
+    "schema": {"const": "EvalEvidenceV1"}, "schema_version": {"const": 1}, "target": {"type": "string", "minLength": 1}, "evaluated_at": {"type": "string", "format": "date-time"},
+    "decision_id": {"type": "string", "minLength": 1}, "gitworthy_run_id": {"type": "string", "minLength": 1},
+    "hermes_baseline_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "candidate_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "fixture_id": {"type": "string", "minLength": 1}, "fixture_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "result": {"enum": ["candidate_fixed", "no_effect", "regression", "indeterminate"]},
+    "oracle": {"type": "object", "additionalProperties": false, "required": ["passed", "observable", "summary"], "properties": {"passed": {"type": ["boolean", "null"]}, "observable": {"type": "boolean"}, "summary": {"type": "string"}}},
+    "frame_conditions": {"type": "object", "additionalProperties": false, "required": ["passed", "checks"], "properties": {"passed": {"type": ["boolean", "null"]}, "checks": {"type": "array", "items": {"type": "object"}}}},
+    "trace_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "platforms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["linux", "windows", "macos", "wsl2", "other"]}},
+    "limitations": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+  }
+}

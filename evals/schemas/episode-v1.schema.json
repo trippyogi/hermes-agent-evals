@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/trippyogi/hermes-agent-evals/evals/schemas/episode-v1.schema.json",
+  "title": "EpisodeV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "episode_id", "trace_id", "corpus_id", "source_class", "model", "server", "hermes_sha", "task_id", "start_event_id", "end_event_id", "detectors", "outcome", "relationship_to_outcome", "evidence", "human_verdict", "human_reason"],
+  "properties": {
+    "schema": {"const": "EpisodeV1"},
+    "schema_version": {"const": 1},
+    "episode_id": {"type": "string", "minLength": 1},
+    "trace_id": {"type": "string", "minLength": 1},
+    "corpus_id": {"type": "string", "minLength": 1},
+    "source_class": {"type": "string", "minLength": 1},
+    "model": {"type": ["string", "null"]},
+    "server": {"type": ["string", "null"]},
+    "hermes_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "task_id": {"type": ["string", "null"]},
+    "start_event_id": {"type": "string", "minLength": 1},
+    "end_event_id": {"type": "string", "minLength": 1},
+    "detectors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "outcome": {"enum": ["success", "failure", "unknown"]},
+    "relationship_to_outcome": {"enum": ["recovery", "harmful", "neutral", "unknown"]},
+    "evidence": {"type": "object"},
+    "human_verdict": {"enum": ["waste", "not_waste", "unsure", null]},
+    "human_reason": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "EvalOpportunityV1",
+  "schema_version": 1,
+  "target": "NousResearch/hermes-agent#123",
+  "evaluated_at": "2026-08-21T00:00:00Z",
+  "issue_shape": "bug",
+  "evalability": {
+    "score": 0.82,
+    "reasons": ["stable external-state oracle is available"],
+    "deterministic_oracle": true,
+    "historical_bracket_available": false,
+    "existing_fixture_match": null,
+    "trace_source_available": true,
+    "live_model_required": false,
+    "cross_platform_required": true,
+    "estimated_repro_minutes": 45,
+    "estimated_run_cost": null
+  },
+  "recommended_contribution_mode": "REPRODUCE",
+  "required_checks": ["linux", "windows"],
+  "limitations": ["advisory only; does not alter GitWorthy verdict or ranking"]
+}

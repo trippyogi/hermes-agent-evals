@@ -1,0 +1,18 @@
+{
+  "schema": "EvalEvidenceV1",
+  "schema_version": 1,
+  "target": "NousResearch/hermes-agent#123",
+  "evaluated_at": "2026-08-21T01:00:00Z",
+  "decision_id": "decision_example",
+  "gitworthy_run_id": "run_example",
+  "hermes_baseline_sha": "1111111111111111111111111111111111111111",
+  "candidate_sha": "2222222222222222222222222222222222222222",
+  "fixture_id": "example-fixture",
+  "fixture_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "result": "candidate_fixed",
+  "oracle": {"passed": true, "observable": true, "summary": "requested state exists"},
+  "frame_conditions": {"passed": true, "checks": []},
+  "trace_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "platforms": ["linux"],
+  "limitations": []
+}
