@@ -1,0 +1,2422 @@
+{
+  "trace_version": "trace-v1",
+  "run_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00",
+  "provenance": {
+    "source": "live_zero_toolset",
+    "adapter": "hermes_eval.trace.adapters.native",
+    "fixture": "zero-toolset-live",
+    "hermes_sha": "13ce0c5c675e843af70d19c9e5144249cd51c8d1",
+    "harness_sha": "b92c29752e823227d5bbc0f8d16a5d1d6b7fb53c",
+    "harness_dirty": true,
+    "model": "qwen3.8:27b-ud-q4-k-xl",
+    "provider": "custom",
+    "classification": [
+      "agent_behavior"
+    ],
+    "redaction": {
+      "secrets": "fingerprint_only",
+      "transcript": "omitted_or_hashed"
+    }
+  },
+  "initial_state": {
+    "status": "RUN",
+    "reps": 10
+  },
+  "events": [
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0000",
+      "seq": 0,
+      "type": "state.snapshot",
+      "span_id": "control:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0001",
+      "seq": 1,
+      "type": "model.request",
+      "span_id": "control:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0002",
+      "seq": 2,
+      "type": "model.response",
+      "span_id": "control:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 132
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0003",
+      "seq": 3,
+      "type": "tool.call",
+      "span_id": "control:0",
+      "parent_id": null,
+      "ts": "1787276684.7384942",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-0/proof.txt",
+          "content": "LIVE-763ea28d9d0c-C"
+        },
+        "canonical_call_id": "EmD44tsO4tgVIVKlSaC011fJ45iZcLfG",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0004",
+      "seq": 4,
+      "type": "tool.result",
+      "span_id": "control:0",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0003",
+      "ts": "1787276684.825705",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-0/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-0/proof.txt"
+          ]
+        },
+        "canonical_call_id": "EmD44tsO4tgVIVKlSaC011fJ45iZcLfG",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0005",
+      "seq": 5,
+      "type": "final.output",
+      "span_id": "control:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13669,
+        "output_tokens": 117,
+        "total_tokens": 27271,
+        "cache_read_tokens": 13485,
+        "cache_write_tokens": 0,
+        "duration_ms": 8190.1,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0006",
+      "seq": 6,
+      "type": "state.snapshot",
+      "span_id": "control:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0007",
+      "seq": 7,
+      "type": "model.request",
+      "span_id": "control:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0008",
+      "seq": 8,
+      "type": "model.response",
+      "span_id": "control:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 100
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0009",
+      "seq": 9,
+      "type": "tool.call",
+      "span_id": "control:1",
+      "parent_id": null,
+      "ts": "1787276696.1411462",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "content": "LIVE-77d452c3beb1-C",
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-1/proof.txt"
+        },
+        "canonical_call_id": "q2xJebv6b8zz8QFnaj863yrudlIobkqg",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0010",
+      "seq": 10,
+      "type": "tool.result",
+      "span_id": "control:1",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0009",
+      "ts": "1787276696.2127345",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-1/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-1/proof.txt"
+          ]
+        },
+        "canonical_call_id": "q2xJebv6b8zz8QFnaj863yrudlIobkqg",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0011",
+      "seq": 11,
+      "type": "final.output",
+      "span_id": "control:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13590,
+        "output_tokens": 115,
+        "total_tokens": 27254,
+        "cache_read_tokens": 13549,
+        "cache_write_tokens": 0,
+        "duration_ms": 8119.3,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0012",
+      "seq": 12,
+      "type": "state.snapshot",
+      "span_id": "control:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0013",
+      "seq": 13,
+      "type": "model.request",
+      "span_id": "control:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0014",
+      "seq": 14,
+      "type": "model.response",
+      "span_id": "control:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 107
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0015",
+      "seq": 15,
+      "type": "tool.call",
+      "span_id": "control:2",
+      "parent_id": null,
+      "ts": "1787276707.238269",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-2/proof.txt",
+          "content": "LIVE-95f28879a147-C"
+        },
+        "canonical_call_id": "KQjr0i9PybN2SDuaFrD7eJNHO5ittuTp",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0016",
+      "seq": 16,
+      "type": "tool.result",
+      "span_id": "control:2",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0015",
+      "ts": "1787276707.313397",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-2/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-2/proof.txt"
+          ]
+        },
+        "canonical_call_id": "KQjr0i9PybN2SDuaFrD7eJNHO5ittuTp",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0017",
+      "seq": 17,
+      "type": "final.output",
+      "span_id": "control:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13674,
+        "output_tokens": 104,
+        "total_tokens": 27267,
+        "cache_read_tokens": 13489,
+        "cache_write_tokens": 0,
+        "duration_ms": 8217.7,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0018",
+      "seq": 18,
+      "type": "state.snapshot",
+      "span_id": "control:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0019",
+      "seq": 19,
+      "type": "model.request",
+      "span_id": "control:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0020",
+      "seq": 20,
+      "type": "model.response",
+      "span_id": "control:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 105
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0021",
+      "seq": 21,
+      "type": "tool.call",
+      "span_id": "control:3",
+      "parent_id": null,
+      "ts": "1787276726.6355968",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-3/proof.txt",
+          "content": "LIVE-0c9e23c64a1a-C"
+        },
+        "canonical_call_id": "L5aSIcTcY9wMzBy6eGBrpBWeB5iHQS6n",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0022",
+      "seq": 22,
+      "type": "tool.result",
+      "span_id": "control:3",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0021",
+      "ts": "1787276726.7117887",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-3/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-3/proof.txt"
+          ]
+        },
+        "canonical_call_id": "L5aSIcTcY9wMzBy6eGBrpBWeB5iHQS6n",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0023",
+      "seq": 23,
+      "type": "final.output",
+      "span_id": "control:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13671,
+        "output_tokens": 111,
+        "total_tokens": 27268,
+        "cache_read_tokens": 13486,
+        "cache_write_tokens": 0,
+        "duration_ms": 8098.8,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0024",
+      "seq": 24,
+      "type": "state.snapshot",
+      "span_id": "control:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0025",
+      "seq": 25,
+      "type": "model.request",
+      "span_id": "control:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0026",
+      "seq": 26,
+      "type": "model.response",
+      "span_id": "control:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 145
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0027",
+      "seq": 27,
+      "type": "tool.call",
+      "span_id": "control:4",
+      "parent_id": null,
+      "ts": "1787276745.6546743",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-4/proof.txt",
+          "content": "LIVE-baeee6c7e702-C"
+        },
+        "canonical_call_id": "kBR4riOEIVqJg5xVXO955Rj3kHP3cOUh",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0028",
+      "seq": 28,
+      "type": "tool.result",
+      "span_id": "control:4",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0027",
+      "ts": "1787276745.7307613",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-4/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-4/proof.txt"
+          ]
+        },
+        "canonical_call_id": "kBR4riOEIVqJg5xVXO955Rj3kHP3cOUh",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0029",
+      "seq": 29,
+      "type": "final.output",
+      "span_id": "control:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13659,
+        "output_tokens": 121,
+        "total_tokens": 27257,
+        "cache_read_tokens": 13477,
+        "cache_write_tokens": 0,
+        "duration_ms": 9045.9,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0030",
+      "seq": 30,
+      "type": "state.snapshot",
+      "span_id": "control:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0031",
+      "seq": 31,
+      "type": "model.request",
+      "span_id": "control:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0032",
+      "seq": 32,
+      "type": "model.response",
+      "span_id": "control:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 122
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0033",
+      "seq": 33,
+      "type": "tool.call",
+      "span_id": "control:5",
+      "parent_id": null,
+      "ts": "1787276765.646397",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-5/proof.txt",
+          "content": "LIVE-a5816e4dfb0b-C"
+        },
+        "canonical_call_id": "K03ICj7T2PBQpDr9lji3rx0McAEKNG7E",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0034",
+      "seq": 34,
+      "type": "tool.result",
+      "span_id": "control:5",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0033",
+      "ts": "1787276765.7175226",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-5/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-5/proof.txt"
+          ]
+        },
+        "canonical_call_id": "K03ICj7T2PBQpDr9lji3rx0McAEKNG7E",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0035",
+      "seq": 35,
+      "type": "final.output",
+      "span_id": "control:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13661,
+        "output_tokens": 112,
+        "total_tokens": 27251,
+        "cache_read_tokens": 13478,
+        "cache_write_tokens": 0,
+        "duration_ms": 8058.7,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0036",
+      "seq": 36,
+      "type": "state.snapshot",
+      "span_id": "control:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0037",
+      "seq": 37,
+      "type": "model.request",
+      "span_id": "control:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0038",
+      "seq": 38,
+      "type": "model.response",
+      "span_id": "control:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 144
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0039",
+      "seq": 39,
+      "type": "tool.call",
+      "span_id": "control:6",
+      "parent_id": null,
+      "ts": "1787276798.1476903",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-6/proof.txt",
+          "content": "LIVE-034a53c2f258-C"
+        },
+        "canonical_call_id": "wy4fMcCtXZJgCnbg0dsqP7TssUkmBTE3",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0040",
+      "seq": 40,
+      "type": "tool.result",
+      "span_id": "control:6",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0039",
+      "ts": "1787276798.2186975",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-6/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-6/proof.txt"
+          ]
+        },
+        "canonical_call_id": "wy4fMcCtXZJgCnbg0dsqP7TssUkmBTE3",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0041",
+      "seq": 41,
+      "type": "final.output",
+      "span_id": "control:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13671,
+        "output_tokens": 124,
+        "total_tokens": 27281,
+        "cache_read_tokens": 13486,
+        "cache_write_tokens": 0,
+        "duration_ms": 9110.5,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0042",
+      "seq": 42,
+      "type": "state.snapshot",
+      "span_id": "control:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0043",
+      "seq": 43,
+      "type": "model.request",
+      "span_id": "control:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0044",
+      "seq": 44,
+      "type": "model.response",
+      "span_id": "control:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 136
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0045",
+      "seq": 45,
+      "type": "tool.call",
+      "span_id": "control:7",
+      "parent_id": null,
+      "ts": "1787276810.2916503",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-7/proof.txt",
+          "content": "LIVE-4e9db01318af-C"
+        },
+        "canonical_call_id": "ixrvMLYuw48K9f51lLNis3abeyPV7T52",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0046",
+      "seq": 46,
+      "type": "tool.result",
+      "span_id": "control:7",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0045",
+      "ts": "1787276810.365612",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-7/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-7/proof.txt"
+          ]
+        },
+        "canonical_call_id": "ixrvMLYuw48K9f51lLNis3abeyPV7T52",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0047",
+      "seq": 47,
+      "type": "final.output",
+      "span_id": "control:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13664,
+        "output_tokens": 117,
+        "total_tokens": 27262,
+        "cache_read_tokens": 13481,
+        "cache_write_tokens": 0,
+        "duration_ms": 8135.6,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0048",
+      "seq": 48,
+      "type": "state.snapshot",
+      "span_id": "control:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0049",
+      "seq": 49,
+      "type": "model.request",
+      "span_id": "control:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0050",
+      "seq": 50,
+      "type": "model.response",
+      "span_id": "control:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 126
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0051",
+      "seq": 51,
+      "type": "tool.call",
+      "span_id": "control:8",
+      "parent_id": null,
+      "ts": "1787276822.3315845",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-8/proof.txt",
+          "content": "LIVE-cd45a3211556-C"
+        },
+        "canonical_call_id": "qIflV4sZfM17VbmvcvVaTymp7Qa0hHnF",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0052",
+      "seq": 52,
+      "type": "tool.result",
+      "span_id": "control:8",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0051",
+      "ts": "1787276822.4099307",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-8/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-8/proof.txt"
+          ]
+        },
+        "canonical_call_id": "qIflV4sZfM17VbmvcvVaTymp7Qa0hHnF",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0053",
+      "seq": 53,
+      "type": "final.output",
+      "span_id": "control:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13666,
+        "output_tokens": 118,
+        "total_tokens": 27266,
+        "cache_read_tokens": 13482,
+        "cache_write_tokens": 0,
+        "duration_ms": 8169.7,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0054",
+      "seq": 54,
+      "type": "state.snapshot",
+      "span_id": "control:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "task_success": true,
+        "proof_exists": true,
+        "actual_tool_calls": 1,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0055",
+      "seq": 55,
+      "type": "model.request",
+      "span_id": "control:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "control",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 191,
+        "tool_schema_count": 1
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0056",
+      "seq": 56,
+      "type": "model.response",
+      "span_id": "control:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": null,
+        "transcript_sha256": null,
+        "turns": 2,
+        "stdout_chars": 128
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0057",
+      "seq": 57,
+      "type": "tool.call",
+      "span_id": "control:9",
+      "parent_id": null,
+      "ts": "1787276834.2287698",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "arguments": {
+          "path": "/tmp/hermes-eval-home-t24qcbr0/control-9/proof.txt",
+          "content": "LIVE-31de50856a45-C"
+        },
+        "canonical_call_id": "Ua3ld6aKDthhi5zAhxiZnSUlV1C3O0Aw",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0058",
+      "seq": 58,
+      "type": "tool.result",
+      "span_id": "control:9",
+      "parent_id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0057",
+      "ts": "1787276834.2995837",
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "name": "write_file",
+        "status": "ok",
+        "ok": true,
+        "result": {
+          "bytes_written": 19,
+          "dirs_created": true,
+          "verified": true,
+          "lint": {
+            "status": "skipped",
+            "message": "No linter for .txt files"
+          },
+          "resolved_path": "/tmp/hermes-eval-home-t24qcbr0/control-9/proof.txt",
+          "files_modified": [
+            "/tmp/hermes-eval-home-t24qcbr0/control-9/proof.txt"
+          ]
+        },
+        "canonical_call_id": "Ua3ld6aKDthhi5zAhxiZnSUlV1C3O0Aw",
+        "source": "hermes_session_db"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0059",
+      "seq": 59,
+      "type": "final.output",
+      "span_id": "control:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": true,
+        "task_success": true,
+        "input_tokens": 13666,
+        "output_tokens": 116,
+        "total_tokens": 27264,
+        "cache_read_tokens": 13482,
+        "cache_write_tokens": 0,
+        "duration_ms": 8143.0,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0060",
+      "seq": 60,
+      "type": "state.snapshot",
+      "span_id": "fault:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0061",
+      "seq": 61,
+      "type": "model.request",
+      "span_id": "fault:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0062",
+      "seq": 62,
+      "type": "model.response",
+      "span_id": "fault:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": true,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": false,
+        "terminal_behavior": "hallucinated_completion",
+        "transcript_sha256": "f68d21921fe2d65d72ed3ad845a594524a52a9997b08cb8b89b9632b8138adbd",
+        "turns": 1,
+        "stdout_chars": 112
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0063",
+      "seq": 63,
+      "type": "final.output",
+      "span_id": "fault:0",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 517,
+        "output_tokens": 44,
+        "total_tokens": 720,
+        "cache_read_tokens": 159,
+        "cache_write_tokens": 0,
+        "duration_ms": 3268.9,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0064",
+      "seq": 64,
+      "type": "state.snapshot",
+      "span_id": "fault:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0065",
+      "seq": 65,
+      "type": "model.request",
+      "span_id": "fault:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0066",
+      "seq": 66,
+      "type": "model.response",
+      "span_id": "fault:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": true,
+        "terminal_behavior": "plain_failure_other",
+        "transcript_sha256": "b140d667c88de74e1bdb2eb8e41eff5d44a13381da6595d3495d0dd01550979f",
+        "turns": 1,
+        "stdout_chars": 49
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0067",
+      "seq": 67,
+      "type": "final.output",
+      "span_id": "fault:1",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 513,
+        "output_tokens": 20,
+        "total_tokens": 693,
+        "cache_read_tokens": 160,
+        "cache_write_tokens": 0,
+        "duration_ms": 2913.3,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0068",
+      "seq": 68,
+      "type": "state.snapshot",
+      "span_id": "fault:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0069",
+      "seq": 69,
+      "type": "model.request",
+      "span_id": "fault:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0070",
+      "seq": 70,
+      "type": "model.response",
+      "span_id": "fault:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "a21052ffa4261b9be68f5177a68a3e902beaec393cd105b0ace5289d872a88b2",
+        "turns": 2,
+        "stdout_chars": 27
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0071",
+      "seq": 71,
+      "type": "final.output",
+      "span_id": "fault:2",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 520,
+        "output_tokens": 150,
+        "total_tokens": 1502,
+        "cache_read_tokens": 832,
+        "cache_write_tokens": 0,
+        "duration_ms": 11322.6,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0072",
+      "seq": 72,
+      "type": "state.snapshot",
+      "span_id": "fault:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0073",
+      "seq": 73,
+      "type": "model.request",
+      "span_id": "fault:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0074",
+      "seq": 74,
+      "type": "model.response",
+      "span_id": "fault:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": true,
+        "terminal_behavior": "plain_failure_other",
+        "transcript_sha256": "f9a6f64154fdc9a852228985c2304f0f1af507136efe9ccb86b5953f257e38ee",
+        "turns": 2,
+        "stdout_chars": 49
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0075",
+      "seq": 75,
+      "type": "final.output",
+      "span_id": "fault:3",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 522,
+        "output_tokens": 96,
+        "total_tokens": 1450,
+        "cache_read_tokens": 832,
+        "cache_write_tokens": 0,
+        "duration_ms": 10931.4,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0076",
+      "seq": 76,
+      "type": "state.snapshot",
+      "span_id": "fault:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0077",
+      "seq": 77,
+      "type": "model.request",
+      "span_id": "fault:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0078",
+      "seq": 78,
+      "type": "model.response",
+      "span_id": "fault:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "c494e4729c8a30b9411b431f429eb3a5deba05e0603038a19dd8c0ed8a663c12",
+        "turns": 2,
+        "stdout_chars": 52
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0079",
+      "seq": 79,
+      "type": "final.output",
+      "span_id": "fault:4",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 517,
+        "output_tokens": 148,
+        "total_tokens": 1492,
+        "cache_read_tokens": 827,
+        "cache_write_tokens": 0,
+        "duration_ms": 10908.5,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0080",
+      "seq": 80,
+      "type": "state.snapshot",
+      "span_id": "fault:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0081",
+      "seq": 81,
+      "type": "model.request",
+      "span_id": "fault:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0082",
+      "seq": 82,
+      "type": "model.response",
+      "span_id": "fault:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "b4b733a678b9a964baefe2a3f006fc2bf149c2e2f7df33cfdb90a36c4dc7ef84",
+        "turns": 3,
+        "stdout_chars": 44
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0083",
+      "seq": 83,
+      "type": "final.output",
+      "span_id": "fault:5",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 523,
+        "output_tokens": 149,
+        "total_tokens": 2171,
+        "cache_read_tokens": 1499,
+        "cache_write_tokens": 0,
+        "duration_ms": 24412.0,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0084",
+      "seq": 84,
+      "type": "state.snapshot",
+      "span_id": "fault:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0085",
+      "seq": 85,
+      "type": "model.request",
+      "span_id": "fault:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0086",
+      "seq": 86,
+      "type": "model.response",
+      "span_id": "fault:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": false,
+        "plain_failure_other": true,
+        "terminal_behavior": "plain_failure_other",
+        "transcript_sha256": "ae89914ecee3751e220737f1dfd90ed6cb2fe3598fa8b9ac23aed0c225f885ec",
+        "turns": 1,
+        "stdout_chars": 49
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0087",
+      "seq": 87,
+      "type": "final.output",
+      "span_id": "fault:6",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 517,
+        "output_tokens": 20,
+        "total_tokens": 696,
+        "cache_read_tokens": 159,
+        "cache_write_tokens": 0,
+        "duration_ms": 2984.2,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0088",
+      "seq": 88,
+      "type": "state.snapshot",
+      "span_id": "fault:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0089",
+      "seq": 89,
+      "type": "model.request",
+      "span_id": "fault:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0090",
+      "seq": 90,
+      "type": "model.response",
+      "span_id": "fault:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "549244c2fd9e7c8a5c7fb303ea2e7e3a92a888c41a588af3f7ea42ab4f5dcb02",
+        "turns": 1,
+        "stdout_chars": 87
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0091",
+      "seq": 91,
+      "type": "final.output",
+      "span_id": "fault:7",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 517,
+        "output_tokens": 92,
+        "total_tokens": 769,
+        "cache_read_tokens": 160,
+        "cache_write_tokens": 0,
+        "duration_ms": 3887.8,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0092",
+      "seq": 92,
+      "type": "state.snapshot",
+      "span_id": "fault:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0093",
+      "seq": 93,
+      "type": "model.request",
+      "span_id": "fault:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0094",
+      "seq": 94,
+      "type": "model.response",
+      "span_id": "fault:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "4863a10406a9142710c9b397575f716430e773f60a569858f04bc2a5d8c6850d",
+        "turns": 1,
+        "stdout_chars": 26
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0095",
+      "seq": 95,
+      "type": "final.output",
+      "span_id": "fault:8",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 514,
+        "output_tokens": 78,
+        "total_tokens": 753,
+        "cache_read_tokens": 161,
+        "cache_write_tokens": 0,
+        "duration_ms": 3720.3,
+        "oracle": "filesystem_nonce_proof"
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0096",
+      "seq": 96,
+      "type": "state.snapshot",
+      "span_id": "fault:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "task_success": false,
+        "proof_exists": false,
+        "actual_tool_calls": 0,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0097",
+      "seq": 97,
+      "type": "model.request",
+      "span_id": "fault:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "arm": "fault",
+        "model": "qwen3.8:27b-ud-q4-k-xl",
+        "provider": "custom",
+        "temperature": 0.0,
+        "reasoning": "none",
+        "prompt_chars": 189,
+        "tool_schema_count": 0
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0098",
+      "seq": 98,
+      "type": "model.response",
+      "span_id": "fault:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "textual_pseudo_tool_call": false,
+        "pseudo_json_like": false,
+        "pseudo_xml_function": false,
+        "pseudo_other": false,
+        "hallucinated_completion": false,
+        "explicit_capability_failure": false,
+        "remediation_requested": false,
+        "other_tool_like_text": true,
+        "plain_failure_other": false,
+        "terminal_behavior": "other_tool_like_text",
+        "transcript_sha256": "47fe732944beeeb98ec8854dc3cda580c0f34a8148929832ac039ede048d18f4",
+        "turns": 1,
+        "stdout_chars": 48
+      }
+    },
+    {
+      "id": "zero-toolset-live:13ce0c5c675e:2026-08-21T01:47:19.142914+00:00:0099",
+      "seq": 99,
+      "type": "final.output",
+      "span_id": "fault:9",
+      "parent_id": null,
+      "ts": null,
+      "redaction": {
+        "secrets": "fingerprint_only",
+        "transcript": "omitted_or_hashed"
+      },
+      "payload": {
+        "proof_exists": false,
+        "task_success": false,
+        "input_tokens": 515,
+        "output_tokens": 81,
+        "total_tokens": 757,
+        "cache_read_tokens": 161,
+        "cache_write_tokens": 0,
+        "duration_ms": 3750.4,
+        "oracle": "filesystem_nonce_proof"
+      }
+    }
+  ],
+  "final_state": {
+    "status": "RUN",
+    "control_task_success_rate": 1.0,
+    "fault_task_success_rate": 0.0,
+    "fault_textual_pseudo_tool_call_rate": 0.0,
+    "fault_pseudo_json_like_rate": 0.0,
+    "fault_pseudo_xml_function_rate": 0.0,
+    "fault_pseudo_other_rate": 0.0,
+    "fault_hallucinated_completion_rate": 0.1,
+    "fault_explicit_capability_failure_rate": 0.0,
+    "fault_diagnostic_rate": 0.0,
+    "fault_mean_actual_tool_calls": 0,
+    "cell_valid_for_fault_comparison": true,
+    "synthetic_substitution": false
+  },
+  "artifacts": {
+    "paths": [
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt",
+      "proof.txt"
+    ],
+    "notes": [
+      "reps=10 control_task_success_rate=1.0 fault_task_success_rate=0.0 fault_textual_pseudo_tool_call_rate=0.0 fault_diagnostic_rate=0.0 fault_mean_tool_calls=0 cell_valid_for_fault_comparison=True",
+      "Fault-arm task success is expected ~0. Known-good makes an empty toolset loud; it does not restore tools. Do not treat fault_task_success_rate as evidence the salvage commit fixed the task.",
+      "Secrets not stored. Transcripts hashed by char count only.",
+      "Provider/template failures such as raw <function=...> stay their own class. Only infrastructure startup failures before the eval run begins may retry once. Infra-startup rows are excluded from control/fault behavioral rate denominators.",
+      "v0.5 human readjudication applied; no model calls; transcript content retained only by SHA-256."
+    ]
+  },
+  "metrics": {
+    "turns": 2,
+    "tool_calls": 1,
+    "tool_calls_success": 1,
+    "tool_calls_failed": 0,
+    "invalid_tool_calls": null,
+    "wasted_tool_calls": null,
+    "input_tokens": 13659.1,
+    "output_tokens": 115.5,
+    "total_tokens": 27264.1,
+    "duration_ms": 161414.0,
+    "recovered": null,
+    "cache_prefix_stable": null,
+    "not_observable": [],
+    "control_task_success_rate": 1.0,
+    "fault_task_success_rate": 0.0,
+    "fault_textual_pseudo_tool_call_rate": 0.0,
+    "fault_diagnostic_rate": 0.0
+  }
+}

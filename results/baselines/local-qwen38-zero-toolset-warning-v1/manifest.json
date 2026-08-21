@@ -1,0 +1,11 @@
+{
+  "experiment_id": "local-qwen38-zero-toolset-warning-v1",
+  "immutable": true,
+  "alias_of": "local-qwen38-zero-toolset-v1",
+  "factor_values": {"hermes_treatment": "warning-enabled", "model": "qwen3.8:27b-ud-q4-k-xl"},
+  "harness": {"model_call_sha": "4c762a67b96c462cd39e828a4b14fcd519c6c137", "recorded_dirty": true, "committed_equivalent_sha": "b92c29752e823227d5bbc0f8d16a5d1d6b7fb53c", "scorer_sha": "d5cba5767015464d3b4aa9f82cd26460b35bb71c"},
+  "fixture": {"id": "zero-toolset-live", "sha256": "86fed6d721b5f0ff6b1c315a76981d2b18f59c0ad26b9cf5d7af13bfcb7c747a"},
+  "hermes": {"sha": "ed5b9152ce975ada68f0b53a21c4806f29ed0852", "treatment": "warning-enabled", "warning_visibility": "OPERATOR_ONLY"},
+  "cell": {"n_attempted": 10, "n_behavioral": 10, "n_infra_excluded": 0, "control_success": 10, "fault_success": 0, "control_tool_calls": 10, "control_tool_results": 10, "fault_tool_calls": 0, "fault_tool_results": 0},
+  "canonical_manifest": "results/baselines/local-qwen38-zero-toolset-v1/manifest.json"
+}

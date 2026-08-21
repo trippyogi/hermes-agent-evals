@@ -1,0 +1,14 @@
+{
+  "experiment_id": "local-qwen35-9b-zero-toolset-warning-v1",
+  "immutable": true,
+  "factor_values": {"hermes_treatment": "warning-enabled", "model": "qwen3.5:9b"},
+  "harness": {"model_call_sha": "b92c29752e823227d5bbc0f8d16a5d1d6b7fb53c", "dirty": false, "scorer_sha": "d5cba5767015464d3b4aa9f82cd26460b35bb71c"},
+  "fixture": {"id": "zero-toolset-live", "sha256": "86fed6d721b5f0ff6b1c315a76981d2b18f59c0ad26b9cf5d7af13bfcb7c747a"},
+  "hermes": {"sha": "ed5b9152ce975ada68f0b53a21c4806f29ed0852", "treatment": "warning-enabled", "warning_visibility": "OPERATOR_ONLY"},
+  "cell": {"n_attempted": 10, "n_behavioral": 10, "n_infra_excluded": 0, "control_success": 10, "fault_success": 0, "control_tool_calls": 10, "control_tool_results": 10, "fault_tool_calls": 0, "fault_tool_results": 0},
+  "model": {"ollama_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7", "parameters": "9.7B", "format": "GGUF", "quantization": "Q4_K_M", "capabilities": ["completion", "vision", "tools", "thinking"]},
+  "serving": {"implementation": "Ollama OpenAI-compatible API", "version": "0.22.1", "context_length": 32768, "tool_configuration": "Ollama model template/tool conversion"},
+  "sampling": {"temperature": 0, "reasoning": "none", "max_tokens": "NOT_RECORDED", "seed": "NOT_RECORDED"},
+  "runtime": {"os": "Ubuntu 24.04.4 LTS", "kernel": "Linux 7.0.0-28-generic x86_64", "python": "3.12.3", "gpu": "NVIDIA GeForce RTX 5090 32607 MiB", "driver": "595.71.05", "cuda_compatibility": "13.2", "cpu": "AMD Ryzen Threadripper 9960X 24-Cores", "ram_bytes": 134386368512},
+  "artifacts": {"result": {"path": "results/v0.5-cells/local-qwen35-9b-zero-toolset-warning-v1/result.json", "sha256": "3992d6a8fba2b12f1b111b7bd84122d7ee9793f1e88af5cf450307f0023ee6ba"}, "trace": {"path": "results/v0.5-cells/local-qwen35-9b-zero-toolset-warning-v1/trace.json", "sha256": "73256190ac96673c5d48f5ae558420be02491da260a3ce11ec7f6767ead067c4"}}
+}

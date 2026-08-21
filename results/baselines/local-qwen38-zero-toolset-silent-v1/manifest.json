@@ -1,0 +1,14 @@
+{
+  "experiment_id": "local-qwen38-zero-toolset-silent-v1",
+  "immutable": true,
+  "factor_values": {"hermes_treatment": "silent", "model": "qwen3.8:27b-ud-q4-k-xl"},
+  "harness": {"model_call_sha": "b92c29752e823227d5bbc0f8d16a5d1d6b7fb53c", "recorded_dirty": true, "dirty_reason": "ATOF gate rewrote tracked reports with line-ending-only differences; measurement code matched model_call_sha", "scorer_sha": "d5cba5767015464d3b4aa9f82cd26460b35bb71c"},
+  "fixture": {"id": "zero-toolset-live", "sha256": "86fed6d721b5f0ff6b1c315a76981d2b18f59c0ad26b9cf5d7af13bfcb7c747a"},
+  "hermes": {"sha": "13ce0c5c675e843af70d19c9e5144249cd51c8d1", "treatment": "silent", "warning_visibility": "OPERATOR_ONLY"},
+  "cell": {"n_attempted": 10, "n_behavioral": 10, "n_infra_excluded": 0, "control_success": 10, "fault_success": 0, "control_tool_calls": 10, "control_tool_results": 10, "fault_tool_calls": 0, "fault_tool_results": 0},
+  "model": {"artifact_sha256": "bee238bbeb3dc0a34bde4d0dedbaee1f98c009e8bb4226f03070054c12fb1372", "quantization": "UD-Q4_K_XL"},
+  "serving": {"implementation": "llama.cpp", "version": "b10423-a94d563ed", "context_length": 65536, "tool_configuration": "GGUF Jinja template; supports_tools=true; supports_object_arguments=true"},
+  "sampling": {"temperature": 0, "reasoning": "none", "max_tokens": "NOT_RECORDED", "seed": "NOT_RECORDED"},
+  "runtime": {"os": "Ubuntu 24.04.4 LTS", "kernel": "Linux 7.0.0-28-generic x86_64", "python": "3.12.3", "gpu": "NVIDIA GeForce RTX 5090 32607 MiB", "driver": "595.71.05", "cuda_compatibility": "13.2", "cpu": "AMD Ryzen Threadripper 9960X 24-Cores", "ram_bytes": 134386368512},
+  "artifacts": {"result": {"path": "results/v0.5-cells/local-qwen38-zero-toolset-silent-v1/result.json", "sha256": "0027813d8fa8ef22b7ac5cb51f3db1343d4b3f49dfe778f98c2b7f5bfb4d0542"}, "trace": {"path": "results/v0.5-cells/local-qwen38-zero-toolset-silent-v1/trace.json", "sha256": "67f6c3c4b6d334ca69ddd0762bb33f6c51c23a7350d6b202cc51714ad1944f5b"}}
+}
