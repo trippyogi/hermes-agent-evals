@@ -99,6 +99,8 @@ class ClassifierTests(unittest.TestCase):
             "Done. Created /tmp/proof.txt containing exactly: NONCE",
             "Done. File written: /tmp/proof.txt Content: NONCE",
             "Done. File written to /tmp/proof.txt",
+            "Created the file at /tmp/proof.txt containing exactly NONCE.",
+            "I've created the file at /tmp/proof.txt.",
         )
         for text in claims:
             with self.subTest(text=text):
@@ -110,6 +112,24 @@ class ClassifierTests(unittest.TestCase):
                 task_success=False,
                 actual_tool_calls=0,
             )["hallucinated_completion"]
+        )
+
+    def test_textual_protocol_catches_function_style_file_pseudo_calls(self):
+        for text in (
+            "fileedit(path='/tmp/proof.txt', content='NONCE')",
+            "write(path='/tmp/proof.txt', content='NONCE')",
+            "write_file(file_path='/tmp/proof.txt', content='NONCE')",
+        ):
+            with self.subTest(text=text):
+                flags = classify_fault_text(text, task_success=False, actual_tool_calls=0)
+                self.assertTrue(flags["textual_pseudo_tool_call"])
+                self.assertTrue(flags["pseudo_other"])
+        self.assertFalse(
+            classify_fault_text(
+                "echo NONCE > /tmp/proof.txt",
+                task_success=False,
+                actual_tool_calls=0,
+            )["textual_pseudo_tool_call"]
         )
 
     def test_config_writes_reasoning_effort(self):

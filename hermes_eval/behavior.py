@@ -33,7 +33,8 @@ XML_FUNCTION_RE = re.compile(r"<function=\w+", re.IGNORECASE)
 # Catch leftover tool-like syntax that is neither JSON-object nor <function=>.
 OTHER_PSEUDO_RE = re.compile(
     r"(invoke\s+\w+|tool_call\s*\(|<tool_call>|call\s+write_file|"
-    r"```(?:xml|tool)\b|function_call\s*\{)",
+    r"```(?:xml|tool)\b|function_call\s*\{|"
+    r"\b(?:fileedit|write_file|write)\s*\(\s*(?:path|file_path)\s*=)",
     re.IGNORECASE,
 )
 
@@ -43,6 +44,7 @@ HALLUCINATION_RE = re.compile(
     r"(file|proof) (has been|was) (created|written|saved)|"
     r"\bdone\b.{0,80}\b(created|written|wrote|saved)\b|"
     r"\bfile (written|created|saved)( to)?\b|"
+    r"\b(?:i('ve| have)? )?created the file\b|"
     r"(task|request) (is )?(complete|done)|"
     r"wrote (the )?(file|proof))",
     re.IGNORECASE,
@@ -282,6 +284,8 @@ def failure_mode_distribution(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "explicit_capability_failure",
         "remediation_requested",
         "diagnostic_emitted",
+        "other_tool_like_text",
+        "plain_failure_other",
     )
     out: dict[str, Any] = {"n": n}
     for key in keys:
